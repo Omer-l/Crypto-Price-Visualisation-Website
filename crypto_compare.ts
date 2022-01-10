@@ -11,7 +11,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 //The structure of a Rates object
-interface FixerRates{
+interface FixerRates {
     USD: number,
     JPY: number,
     EUR: number
@@ -19,13 +19,15 @@ interface FixerRates{
 
 //The data structure returned in the message body by fixer.io
 interface FixerObject {
-    success: boolean,
-    error?: FixerError,
-    timestamp: number,
-    historical: boolean,
-    base: string,
-    date: string,
-    rates: FixerRates
+    // success: boolean,
+    // error?: FixerError,
+    // timestamp: number,
+    // historical: boolean,
+    // base: string,
+    // date: string,
+    USD: number,
+    JPY: number,
+    EUR: number
 }
 
 //The data structure of a fixer.io error
@@ -82,6 +84,8 @@ async function getHistoricalData(startDate: string, numDays: number){
     //Wait for all promises to execute
     try {
         let resultArray: Array<object> = await Promise.all(promiseArray);
+        bitcoins: Array<FixerObject>();
+
 
         //Output the data
         resultArray.forEach((result)=>{
@@ -90,16 +94,19 @@ async function getHistoricalData(startDate: string, numDays: number){
             let data: FixerObject = result['data'];
 
             //Check that API call succeeded.
-            if(data.success != true){
-                console.log("Error: " + JSON.stringify(data.error));
+            // if(data.success != true){
+            if(data == undefined) {
+                // console.log("Error: " + JSON.stringify(data.error));
+                console.log("Error: undefined" + JSON.stringify(data));
             }
             else{
                 //Output the result - you should put this data in the database
-                console.log("Date: " + data.date +
-                    " USD: " + data.rates.USD +
-                    " JPY: " + data.rates.JPY +
-                    " EUR: " + data.rates.EUR
+                console.log(
+                    " USD: " + data.USD +
+                    " JPY: " + data.JPY +
+                    " EUR: " + data.EUR
                 );
+                this.bitcoins.push(data);
             }
         });
     }

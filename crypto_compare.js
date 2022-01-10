@@ -35,7 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.Fixer = void 0;
 //Time library that we will use to increment dates.
 var moment = require('moment');
@@ -70,6 +70,7 @@ exports.Fixer = Fixer;
 function getHistoricalData(startDate, numDays) {
     return __awaiter(this, void 0, void 0, function () {
         var date, fixerIo, promiseArray, i, resultArray, error_1;
+        var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -89,21 +90,24 @@ function getHistoricalData(startDate, numDays) {
                     return [4 /*yield*/, Promise.all(promiseArray)];
                 case 2:
                     resultArray = _a.sent();
+                    bitcoins: Array();
                     //Output the data
                     resultArray.forEach(function (result) {
                         console.log(result);
                         //data contains the body of the web service response
                         var data = result['data'];
                         //Check that API call succeeded.
-                        if (data.success != true) {
-                            console.log("Error: " + JSON.stringify(data.error));
+                        // if(data.success != true){
+                        if (data == undefined) {
+                            // console.log("Error: " + JSON.stringify(data.error));
+                            console.log("Error: undefined" + JSON.stringify(data));
                         }
                         else {
                             //Output the result - you should put this data in the database
-                            console.log("Date: " + data.date +
-                                " USD: " + data.rates.USD +
-                                " JPY: " + data.rates.JPY +
-                                " EUR: " + data.rates.EUR);
+                            console.log(" USD: " + data.USD +
+                                " JPY: " + data.JPY +
+                                " EUR: " + data.EUR);
+                            _this.bitcoins.push(data);
                         }
                     });
                     return [3 /*break*/, 4];
@@ -118,3 +122,4 @@ function getHistoricalData(startDate, numDays) {
 }
 //Call function to get historical data
 getHistoricalData('2015-12-24', 10);
+//# sourceMappingURL=crypto_compare.js.map
