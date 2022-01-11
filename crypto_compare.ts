@@ -28,9 +28,8 @@ namespace Put {
         // historical: boolean,
         // base: string,
         // date: string,
-        USD: number,
-        JPY: number,
-        EUR: number
+        open: number,
+        time: number
     }
 
 //The data structure of a fixer.io error
@@ -43,17 +42,16 @@ namespace Put {
 
 //Class that wraps fixer.io web service
     export class Fixer {
-        //Base URL of fixer.io API
-        baseURL: string = "https://min-api.cryptocompare.com/data/price";
+        //Base URL of fixer.io API ?fsym=BTC&tsym=USD&limit=1000
+        baseURL: string = "https://min-api.cryptocompare.com/data/v2/histoday";
         accessKey = "000b9badd6690c6fa779bde8d4133afbdf0701b864691c454d3c349b88f3464d";
 
         //Returns a Promise that will get the exchange rates for the specified date
         getExchangeRates(date: string): Promise<object> {
             //Build URL for API call
             let url: string = this.baseURL + "?";
-            url += "fsym=BTC&tsyms=USD,JPY,EUR";
+            url += "fsym=BTC&tsym=USD&limit=1000";
             url += "&api_key=" + this.accessKey;
-            // url += "&api_key=" + process.env.FIXERIO_API_KEY;
 
             //Output URL and return Promise
             console.log("Building fixer.io Promise with URL: " + url);
@@ -76,26 +74,27 @@ namespace Put {
         //Array to hold promises
         let promiseArray: Array<Promise<object>> = [];
 
-        //Work forward from start date
-        for (let i: number = 0; i < numDays; ++i) {
-            //Add axios promise to array
+        // //Work forward from start date
+        // for (let i: number = 0; i < numDays; ++i) {
+        //     //Add axios promise to array
             promiseArray.push(fixerIo.getExchangeRates(date.format("YYYY-MM-DD")));
 
-            //Increase the number of days
-            date.add(1, 'days');
-        }
+        //     //Increase the number of days
+        //     date.add(1, 'days');
+        // }
 
         //Wait for all promises to execute
         try {
             let resultArray: Array<object> = await Promise.all(promiseArray);
-            bitcoins: Array<FixerObject>();
-
-
+            // resultArray = promiseArray['data'];
+            console.log(resultArray[0]['data']);
             //Output the data
             resultArray.forEach((result) => {
                 console.log(result);
                 //data contains the body of the web service response
-                let data: FixerObject = result['data'];
+                let data: FixerObject;
+                data.open = result['open'];
+                let timestamp: number = result['time'];
 
                 //Check that API call succeeded.
                 // if(data.success != true){
@@ -105,9 +104,8 @@ namespace Put {
                 } else {
                     //Output the result - you should put this data in the database
                     console.log(
-                        " USD: " + data.USD +
-                        " JPY: " + data.JPY +
-                        " EUR: " + data.EUR
+                        " USD: " + data.open +
+                        " Time: " + data.time
                     );
 
 //Set the region and endpoint
@@ -133,9 +131,9 @@ namespace Put {
                     let params = {
                         TableName: "CryptoData",
                         Item: {
-                            PriceTimeStamp: date.getTime(),//Current time in milliseconds
+                            PriceTimeStamp: data.time,//Current time in milliseconds
                             Currency: "bitcoin",
-                            Price: data.EUR
+                            Price: data.open
                         }
                     };
 

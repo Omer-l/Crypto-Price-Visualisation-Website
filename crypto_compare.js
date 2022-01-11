@@ -48,17 +48,16 @@ var Put;
     //Class that wraps fixer.io web service
     var Fixer = /** @class */ (function () {
         function Fixer() {
-            //Base URL of fixer.io API
-            this.baseURL = "https://min-api.cryptocompare.com/data/price";
+            //Base URL of fixer.io API ?fsym=BTC&tsym=USD&limit=1000
+            this.baseURL = "https://min-api.cryptocompare.com/data/v2/histoday";
             this.accessKey = "000b9badd6690c6fa779bde8d4133afbdf0701b864691c454d3c349b88f3464d";
         }
         //Returns a Promise that will get the exchange rates for the specified date
         Fixer.prototype.getExchangeRates = function (date) {
             //Build URL for API call
             var url = this.baseURL + "?";
-            url += "fsym=BTC&tsyms=USD,JPY,EUR";
+            url += "fsym=BTC&tsym=USD&limit=1000";
             url += "&api_key=" + this.accessKey;
-            // url += "&api_key=" + process.env.FIXERIO_API_KEY;
             //Output URL and return Promise
             console.log("Building fixer.io Promise with URL: " + url);
             return axios.get(url);
@@ -69,32 +68,32 @@ var Put;
     //Gets the historical data for a range of dates.
     function getHistoricalData(startDate, numDays) {
         return __awaiter(this, void 0, void 0, function () {
-            var date, fixerIo, promiseArray, i, resultArray, error_1;
+            var date, fixerIo, promiseArray, resultArray, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         date = moment(startDate);
                         fixerIo = new Fixer();
                         promiseArray = [];
-                        //Work forward from start date
-                        for (i = 0; i < numDays; ++i) {
-                            //Add axios promise to array
-                            promiseArray.push(fixerIo.getExchangeRates(date.format("YYYY-MM-DD")));
-                            //Increase the number of days
-                            date.add(1, 'days');
-                        }
+                        // //Work forward from start date
+                        // for (let i: number = 0; i < numDays; ++i) {
+                        //     //Add axios promise to array
+                        promiseArray.push(fixerIo.getExchangeRates(date.format("YYYY-MM-DD")));
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
                         return [4 /*yield*/, Promise.all(promiseArray)];
                     case 2:
                         resultArray = _a.sent();
-                        bitcoins: Array();
+                        // resultArray = promiseArray['data'];
+                        console.log(resultArray[0]['data']);
                         //Output the data
                         resultArray.forEach(function (result) {
                             console.log(result);
                             //data contains the body of the web service response
-                            var data = result['data'];
+                            var data;
+                            data.open = result['open'];
+                            var timestamp = result['time'];
                             //Check that API call succeeded.
                             // if(data.success != true){
                             if (data == undefined) {
@@ -103,9 +102,8 @@ var Put;
                             }
                             else {
                                 //Output the result - you should put this data in the database
-                                console.log(" USD: " + data.USD +
-                                    " JPY: " + data.JPY +
-                                    " EUR: " + data.EUR);
+                                console.log(" USD: " + data.open +
+                                    " Time: " + data.time);
                                 //Set the region and endpoint
                                 // AWS.config.update({
                                 //     region: "eu-west-1",
@@ -126,9 +124,9 @@ var Put;
                                 var params_1 = {
                                     TableName: "CryptoData",
                                     Item: {
-                                        PriceTimeStamp: date_1.getTime(),
+                                        PriceTimeStamp: data.time,
                                         Currency: "bitcoin",
-                                        Price: data.EUR
+                                        Price: data.open
                                     }
                                 };
                                 //Store data in DynamoDB and handle errors
