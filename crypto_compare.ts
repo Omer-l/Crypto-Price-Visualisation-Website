@@ -22,14 +22,27 @@ namespace Put {
 
 //The data structure returned in the message body by fixer.io
     interface FixerObject {
-        // success: boolean,
-        // error?: FixerError,
-        // timestamp: number,
-        // historical: boolean,
-        // base: string,
-        // date: string,
-        open: number,
-        time: number
+        Response: string,
+        Message: string,
+        HasWarning: boolean,
+        Type: number,
+        RateLimit: [],
+        Data: {
+            Aggregated: boolean,
+            TimeFrom: number,
+            TimeTo: number,
+            Data: [
+                time: number,
+                high: number,
+                low: number,
+                open: number,
+                volumefrom: number,
+                volumeto: number,
+                close: number,
+                conversionType: string,
+                conversionSymbol: string
+            ]
+        }
     }
 
 //The data structure of a fixer.io error
@@ -77,7 +90,7 @@ namespace Put {
         // //Work forward from start date
         // for (let i: number = 0; i < numDays; ++i) {
         //     //Add axios promise to array
-            promiseArray.push(fixerIo.getExchangeRates(date.format("YYYY-MM-DD")));
+        promiseArray.push(fixerIo.getExchangeRates(date.format("YYYY-MM-DD")));
 
         //     //Increase the number of days
         //     date.add(1, 'days');
@@ -89,13 +102,15 @@ namespace Put {
             // resultArray = promiseArray['data'];
             console.log(resultArray[0]['data']);
             //Output the data
-            resultArray.forEach((result) => {
-                console.log(result);
-                //data contains the body of the web service response
-                let data: FixerObject;
-                data.open = result['open'];
-                let timestamp: number = result['time'];
+            //data contains the body of the web service response
+            let data: FixerObject = resultArray[0]['data'];
 
+            if(data.Response != "Success")
+                console.log("UNSUCCESSFUL REQUEST");
+
+            let cryptoData = data.Data.Data;
+            cryptoData.forEach((crypto, index) => {
+                console.log(crypto);
                 //Check that API call succeeded.
                 // if(data.success != true){
                 if (data == undefined) {
@@ -104,8 +119,8 @@ namespace Put {
                 } else {
                     //Output the result - you should put this data in the database
                     console.log(
-                        " USD: " + data.open +
-                        " Time: " + data.time
+                        // " USD: " + data.open +
+                        // " Time: " + data.time
                     );
 
 //Set the region and endpoint
@@ -131,9 +146,9 @@ namespace Put {
                     let params = {
                         TableName: "CryptoData",
                         Item: {
-                            PriceTimeStamp: data.time,//Current time in milliseconds
+                            PriceTimeStamp: crypto.time,//Current time in milliseconds
                             Currency: "bitcoin",
-                            Price: data.open
+                            Price: crypto.open
                         }
                     };
 

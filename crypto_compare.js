@@ -68,7 +68,7 @@ var Put;
     //Gets the historical data for a range of dates.
     function getHistoricalData(startDate, numDays) {
         return __awaiter(this, void 0, void 0, function () {
-            var date, fixerIo, promiseArray, resultArray, error_1;
+            var date, fixerIo, promiseArray, resultArray, data_1, cryptoData, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -87,23 +87,24 @@ var Put;
                         resultArray = _a.sent();
                         // resultArray = promiseArray['data'];
                         console.log(resultArray[0]['data']);
-                        //Output the data
-                        resultArray.forEach(function (result) {
-                            console.log(result);
-                            //data contains the body of the web service response
-                            var data;
-                            data.open = result['open'];
-                            var timestamp = result['time'];
+                        data_1 = resultArray[0]['data'];
+                        if (data_1.Response != "Success")
+                            console.log("UNSUCCESSFUL REQUEST");
+                        cryptoData = data_1.Data.Data;
+                        cryptoData.forEach(function (crypto, index) {
+                            console.log(crypto);
                             //Check that API call succeeded.
                             // if(data.success != true){
-                            if (data == undefined) {
+                            if (data_1 == undefined) {
                                 // console.log("Error: " + JSON.stringify(data.error));
-                                console.log("Error: undefined" + JSON.stringify(data));
+                                console.log("Error: undefined" + JSON.stringify(data_1));
                             }
                             else {
                                 //Output the result - you should put this data in the database
-                                console.log(" USD: " + data.open +
-                                    " Time: " + data.time);
+                                console.log(
+                                // " USD: " + data.open +
+                                // " Time: " + data.time
+                                );
                                 //Set the region and endpoint
                                 // AWS.config.update({
                                 //     region: "eu-west-1",
@@ -124,9 +125,9 @@ var Put;
                                 var params_1 = {
                                     TableName: "CryptoData",
                                     Item: {
-                                        PriceTimeStamp: data.time,
+                                        PriceTimeStamp: crypto.time,
                                         Currency: "bitcoin",
-                                        Price: data.open
+                                        Price: crypto.open
                                     }
                                 };
                                 //Store data in DynamoDB and handle errors
