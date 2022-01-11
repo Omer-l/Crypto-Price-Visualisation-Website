@@ -37,6 +37,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var Put;
 (function (Put) {
     var AWS = require("aws-sdk");
+    //Used to writing to data json file
+    var fs = require("fs");
     //Time library that we will use to increment dates.
     var moment = require('moment');
     //Axios will handle HTTP requests to web service
@@ -45,6 +47,11 @@ var Put;
     var dotenv = require('dotenv');
     //Copy variables in file into environment variables
     dotenv.config();
+    var SageMakerData = /** @class */ (function () {
+        function SageMakerData() {
+        }
+        return SageMakerData;
+    }());
     //Class that wraps fixer.io web service
     var Fixer = /** @class */ (function () {
         function Fixer() {
@@ -53,10 +60,10 @@ var Put;
             this.accessKey = "000b9badd6690c6fa779bde8d4133afbdf0701b864691c454d3c349b88f3464d";
         }
         //Returns a Promise that will get the exchange rates for the specified date
-        Fixer.prototype.getExchangeRates = function (date) {
+        Fixer.prototype.getExchangeRates = function () {
             //Build URL for API call
             var url = this.baseURL + "?";
-            url += "fsym=BTC&tsym=USD&limit=1000";
+            url += "fsym=BTC&tsym=USD&limit=1900";
             url += "&api_key=" + this.accessKey;
             //Output URL and return Promise
             console.log("Building fixer.io Promise with URL: " + url);
@@ -66,22 +73,25 @@ var Put;
     }());
     Put.Fixer = Fixer;
     //Gets the historical data for a range of dates.
-    function getHistoricalData(startDate, numDays) {
+    function getHistoricalData() {
         return __awaiter(this, void 0, void 0, function () {
-            var date, fixerIo, promiseArray, resultArray, data_1, cryptoData, error_1;
+            var fixerIo, promiseArray, start, sageMakerList, target, resultArray, data_1, cryptoData, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        date = moment(startDate);
                         fixerIo = new Fixer();
                         promiseArray = [];
                         // //Work forward from start date
                         // for (let i: number = 0; i < numDays; ++i) {
                         //     //Add axios promise to array
-                        promiseArray.push(fixerIo.getExchangeRates(date.format("YYYY-MM-DD")));
+                        promiseArray.push(fixerIo.getExchangeRates());
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
+                        start = "1970-01-11 16:36:51";
+                        sageMakerList = new SageMakerData();
+                        sageMakerList.start = start;
+                        target = [];
                         return [4 /*yield*/, Promise.all(promiseArray)];
                     case 2:
                         resultArray = _a.sent();
@@ -113,16 +123,16 @@ var Put;
                                 AWS.config.update({
                                     region: "us-east-1",
                                     endpoint: "https://dynamodb.us-east-1.amazonaws.com",
-                                    accessKeyId: 'ASIA2ZOJXFRADRAXMC7C',
-                                    secretAccessKey: 'GRQl/ZaTMEEQld7sd4UtwLSD2kC45UcN8isPYA70',
-                                    sessionToken: 'FwoGZXIvYXdzEBcaDNFZYu+U4T7GlK+heCLFAdN2ZKy3jgqdqhCRztvmYcosh4BrWxWbgiJAGQkyGgBP0E5BuhJ5cK168e2EMMZPbja3pphguy+0b/14E20I+UgWsLBB012zt3jh2iTEGsWfenh+Xz6bI0JUcbB46S/pVtoTOISD2ekZDa7nw0QDHGGZ7fuKOIcsd1IFG3RfeORVEcwTQgpNfAppKXEV0DqILM26fzui7BYlBlLMq+i+hUugW5UMWDE2rVjHEYL6/Y6tKjczuaxpy9NnClfQx/Pcskhrm46YKLjV8o4GMi2PLWbx/CStvbJSgcQpdmHdKYQLKrTUM+8fO81nbrsVXObE8aDoYJOSVzr1cpU='
+                                    accessKeyId: 'ASIA2ZOJXFRAIUE5QXXF',
+                                    secretAccessKey: 'Pg3q481WhbzaQa3wW+ox5HXQg1bfPBmoUj5K1NJ/',
+                                    sessionToken: 'FwoGZXIvYXdzECkaDGKwY+qmH44kAKlTCiLFAaeOFNHgSTKrghPx3E4AMh3iG9QpEnVVWbYx5BbOt3vk/Tbg2oUh8ruHaJ4o2n/3I46prUsZSeyaim23zX1vIP38KZzemiI4tdVdYOHVf7rXeX/kcyXOzFGG6mB2eW2p8kAD7C+nWOBL9tCdRlCiQwlSYNTXkPtKw369oZBpzsweHWBHylZRE+sHWm67LyIwkazkcvFJxvY7Fb6NOiKTjpCQzxahWqlj2y6QwfyMhERk/kxFciD1di0aAMFMx1hgD0qAC48hKN7Q9o4GMi0VO6+x5q6S+9OkLtHmMRJoJgNA2CX8dNXZgvPBN8+KnYsFY80r/WObcDTX924='
                                 });
                                 //Create date object to get date in UNIX time
-                                var date_1 = new Date();
+                                var date = new Date();
                                 //Create new DocumentClient
                                 var documentClient = new AWS.DynamoDB.DocumentClient();
                                 //Table name and data for table
-                                var params_1 = {
+                                var params = {
                                     TableName: "CryptoData",
                                     Item: {
                                         PriceTimeStamp: crypto.time,
@@ -130,18 +140,24 @@ var Put;
                                         Price: crypto.open
                                     }
                                 };
+                                target.push(crypto.open);
                                 //Store data in DynamoDB and handle errors
-                                console.log("ATTEMPTING TO SEND");
-                                documentClient.put(params_1, function (err, data) {
-                                    if (err) {
-                                        console.error("Unable to add item", params_1.Item.Currency);
-                                        console.error("Error JSON:", JSON.stringify(err));
-                                    }
-                                    else {
-                                        console.log("Currency added to table:", params_1.Item);
-                                    }
-                                });
+                                // documentClient.put(params, (err, data) => {
+                                //     if (err) {
+                                //         console.error("Unable to add item", params.Item.Currency);
+                                //         console.error("Error JSON:", JSON.stringify(err));
+                                //     } else {
+                                //         console.log("Currency added to table:", params.Item);
+                                //     }
+                                // });
                             }
+                        });
+                        sageMakerList.target = target;
+                        fs.writeFile('synthetic_data_1_train.json', JSON.stringify(sageMakerList), function (err) {
+                            if (err) {
+                                throw err;
+                            }
+                            console.log("JSON data is saved.");
                         });
                         return [3 /*break*/, 4];
                     case 3:
@@ -154,6 +170,6 @@ var Put;
         });
     }
     //Call function to get historical data
-    getHistoricalData('2015-12-24', 10);
+    getHistoricalData();
 })(Put || (Put = {}));
 //# sourceMappingURL=crypto_compare.js.map
