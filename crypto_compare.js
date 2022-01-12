@@ -52,6 +52,8 @@ var Put;
         }
         return SageMakerData;
     }());
+    var date = new Date(1605916800);
+    var dt = date.getTime();
     //Class that wraps fixer.io web service
     var Fixer = /** @class */ (function () {
         function Fixer() {
@@ -98,28 +100,17 @@ var Put;
                         // resultArray = promiseArray['data'];
                         console.log(resultArray[0]['data']);
                         data_1 = resultArray[0]['data'];
+                        //Check that API call succeeded.
                         if (data_1.Response != "Success")
-                            console.log("UNSUCCESSFUL REQUEST");
+                            console.log("UNSUCCESSFUL REQUEST" + JSON.stringify(data_1.Response));
                         cryptoData = data_1.Data.Data;
                         cryptoData.forEach(function (crypto, index) {
                             console.log(crypto);
-                            //Check that API call succeeded.
-                            // if(data.success != true){
                             if (data_1 == undefined) {
-                                // console.log("Error: " + JSON.stringify(data.error));
                                 console.log("Error: undefined" + JSON.stringify(data_1));
+                                continue;
                             }
                             else {
-                                //Output the result - you should put this data in the database
-                                console.log(
-                                // " USD: " + data.open +
-                                // " Time: " + data.time
-                                );
-                                //Set the region and endpoint
-                                // AWS.config.update({
-                                //     region: "eu-west-1",
-                                //     endpoint: "https://dynamodb.eu-west-1.amazonaws.com"
-                                // });
                                 AWS.config.update({
                                     region: "us-east-1",
                                     endpoint: "https://dynamodb.us-east-1.amazonaws.com",
@@ -128,11 +119,11 @@ var Put;
                                     sessionToken: 'FwoGZXIvYXdzECkaDGKwY+qmH44kAKlTCiLFAaeOFNHgSTKrghPx3E4AMh3iG9QpEnVVWbYx5BbOt3vk/Tbg2oUh8ruHaJ4o2n/3I46prUsZSeyaim23zX1vIP38KZzemiI4tdVdYOHVf7rXeX/kcyXOzFGG6mB2eW2p8kAD7C+nWOBL9tCdRlCiQwlSYNTXkPtKw369oZBpzsweHWBHylZRE+sHWm67LyIwkazkcvFJxvY7Fb6NOiKTjpCQzxahWqlj2y6QwfyMhERk/kxFciD1di0aAMFMx1hgD0qAC48hKN7Q9o4GMi0VO6+x5q6S+9OkLtHmMRJoJgNA2CX8dNXZgvPBN8+KnYsFY80r/WObcDTX924='
                                 });
                                 //Create date object to get date in UNIX time
-                                var date = new Date();
+                                var date_1 = new Date();
                                 //Create new DocumentClient
                                 var documentClient = new AWS.DynamoDB.DocumentClient();
                                 //Table name and data for table
-                                var params = {
+                                var params_1 = {
                                     TableName: "CryptoData",
                                     Item: {
                                         PriceTimeStamp: crypto.time,
@@ -142,14 +133,15 @@ var Put;
                                 };
                                 target.push(crypto.open);
                                 //Store data in DynamoDB and handle errors
-                                // documentClient.put(params, (err, data) => {
-                                //     if (err) {
-                                //         console.error("Unable to add item", params.Item.Currency);
-                                //         console.error("Error JSON:", JSON.stringify(err));
-                                //     } else {
-                                //         console.log("Currency added to table:", params.Item);
-                                //     }
-                                // });
+                                documentClient.put(params_1, function (err, data) {
+                                    if (err) {
+                                        console.error("Unable to add item", params_1.Item.Currency);
+                                        console.error("Error JSON:", JSON.stringify(err));
+                                    }
+                                    else {
+                                        console.log("Currency added to table:", params_1.Item);
+                                    }
+                                });
                             }
                         });
                         sageMakerList.target = target;

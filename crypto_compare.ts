@@ -60,6 +60,8 @@ namespace Put {
         target: Array<number>;
     }
 
+    var date = new Date(1605916800);
+    var dt = date.getTime();
 
 //Class that wraps fixer.io web service
     export class Fixer {
@@ -109,7 +111,7 @@ namespace Put {
             let start = "1970-01-11 16:36:51";
             var sageMakerList = new SageMakerData();
             sageMakerList.start = start;
-            var target : Array<number> = [];
+            var target: Array<number> = [];
 
             let resultArray: Array<object> = await Promise.all(promiseArray);
             // resultArray = promiseArray['data'];
@@ -118,29 +120,18 @@ namespace Put {
             //data contains the body of the web service response
             let data: FixerObject = resultArray[0]['data'];
 
-            if(data.Response != "Success")
-                console.log("UNSUCCESSFUL REQUEST");
+            //Check that API call succeeded.
+            if (data.Response != "Success")
+                console.log("UNSUCCESSFUL REQUEST" + JSON.stringify(data.Response));
 
             let cryptoData = data.Data.Data;
             cryptoData.forEach((crypto, index) => {
                 console.log(crypto);
-                //Check that API call succeeded.
-                // if(data.success != true){
-                if (data == undefined) {
-                    // console.log("Error: " + JSON.stringify(data.error));
-                    console.log("Error: undefined" + JSON.stringify(data));
-                } else {
-                    //Output the result - you should put this data in the database
-                    console.log(
-                        // " USD: " + data.open +
-                        // " Time: " + data.time
-                    );
 
-//Set the region and endpoint
-// AWS.config.update({
-//     region: "eu-west-1",
-//     endpoint: "https://dynamodb.eu-west-1.amazonaws.com"
-// });
+                if (data == undefined) {
+                    console.log("Error: undefined" + JSON.stringify(data));
+                    continue;
+                } else {
                     AWS.config.update({
                         region: "us-east-1",
                         endpoint: "https://dynamodb.us-east-1.amazonaws.com",
@@ -167,14 +158,14 @@ namespace Put {
                     target.push(crypto.open);
 
                     //Store data in DynamoDB and handle errors
-                    // documentClient.put(params, (err, data) => {
-                    //     if (err) {
-                    //         console.error("Unable to add item", params.Item.Currency);
-                    //         console.error("Error JSON:", JSON.stringify(err));
-                    //     } else {
-                    //         console.log("Currency added to table:", params.Item);
-                    //     }
-                    // });
+                    documentClient.put(params, (err, data) => {
+                        if (err) {
+                            console.error("Unable to add item", params.Item.Currency);
+                            console.error("Error JSON:", JSON.stringify(err));
+                        } else {
+                            console.log("Currency added to table:", params.Item);
+                        }
+                    });
                 }
             });
             sageMakerList.target = target;
