@@ -34,7 +34,6 @@ namespace GetDemo {
             console.log("Data:", data);
         }
     });
-
 }
 
 

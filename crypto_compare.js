@@ -108,30 +108,31 @@ var Put;
                             console.log(crypto);
                             if (data_1 == undefined) {
                                 console.log("Error: undefined" + JSON.stringify(data_1));
-                                continue;
                             }
                             else {
                                 AWS.config.update({
                                     region: "us-east-1",
                                     endpoint: "https://dynamodb.us-east-1.amazonaws.com",
-                                    accessKeyId: 'ASIA2ZOJXFRAIUE5QXXF',
-                                    secretAccessKey: 'Pg3q481WhbzaQa3wW+ox5HXQg1bfPBmoUj5K1NJ/',
-                                    sessionToken: 'FwoGZXIvYXdzECkaDGKwY+qmH44kAKlTCiLFAaeOFNHgSTKrghPx3E4AMh3iG9QpEnVVWbYx5BbOt3vk/Tbg2oUh8ruHaJ4o2n/3I46prUsZSeyaim23zX1vIP38KZzemiI4tdVdYOHVf7rXeX/kcyXOzFGG6mB2eW2p8kAD7C+nWOBL9tCdRlCiQwlSYNTXkPtKw369oZBpzsweHWBHylZRE+sHWm67LyIwkazkcvFJxvY7Fb6NOiKTjpCQzxahWqlj2y6QwfyMhERk/kxFciD1di0aAMFMx1hgD0qAC48hKN7Q9o4GMi0VO6+x5q6S+9OkLtHmMRJoJgNA2CX8dNXZgvPBN8+KnYsFY80r/WObcDTX924='
+                                    accessKeyId: 'ASIA2ZOJXFRAAUVTPTBS',
+                                    secretAccessKey: '371USrO7izMH2prtOuXnNUc+Oa+PoyizlYdzkTV6',
+                                    sessionToken: 'FwoGZXIvYXdzEEAaDOUSbZBecusfx8ca4CLFAbNFCbVpj83BjoGw5rstlDV28V9CouC7Pn6CO0sDzTZmRsx4X0qukdPDcBFZbMplctLxkgMgObwGuyXqLGFNwnV6p+nhZrTAhkQoVWPCXkO76mRSpTH1B3RXPwQ1bZCFtr947JSRH4eJEWymfMAIXo/18XPi/iSz7uAV19Xx8ju1FnmSz6BVwBbIjJqG2ntlHzRld0u1LVEjtypCYu1zIwVlu3FZg2CPchdtI8nNnn9XI31GKQ4rgEzegmHDgHCbxemr/Q0+KKTJ+44GMi3KWc7DZNUSWIh9ZYh3QtYIwjlZHQ/zKr/pe4Ro1U1k8wIlNbiFzy9YpgL21O4='
                                 });
                                 //Create date object to get date in UNIX time
                                 var date_1 = new Date();
                                 //Create new DocumentClient
                                 var documentClient = new AWS.DynamoDB.DocumentClient();
+                                var price = (crypto.open + crypto.low + crypto.high) / 3; //takes the average price for the coin
+                                var time = crypto.time;
                                 //Table name and data for table
                                 var params_1 = {
                                     TableName: "CryptoData",
                                     Item: {
-                                        PriceTimeStamp: crypto.time,
-                                        Currency: "bitcoin",
-                                        Price: crypto.open
+                                        PriceTimeStamp: time,
+                                        Currency: "BTC",
+                                        Price: price
                                     }
                                 };
-                                target.push(crypto.open);
+                                target.push(price);
                                 //Store data in DynamoDB and handle errors
                                 documentClient.put(params_1, function (err, data) {
                                     if (err) {
