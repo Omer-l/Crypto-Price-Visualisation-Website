@@ -4,6 +4,9 @@ let AWS = require("aws-sdk");
 //AWS class that will query endpoint
 let awsRuntime = new AWS.SageMakerRuntime({});
 
+// The database and table are 'in us-east-1'
+const ddb = new AWS.DynamoDB.DocumentClient({region: 'us-east-1'});
+
 //Authentication details for Plotly
 const PLOTLY_USERNAME = 'omerka1';
 const PLOTLY_KEY = 'CngH9Ebp1Ee7SKaVJVPY';
@@ -30,6 +33,13 @@ let endpointData = {
         }
 };
 
+function readCryptoData() {
+    const params = {
+        TableName: 'CryptoData'
+    }
+    return ddb.scan(params).promise();
+}
+
 function readEndpoint() {
     //Name of endpoint
     //REPLACE THIS WITH THE NAME OF YOUR ENDPOINT
@@ -44,15 +54,78 @@ function readEndpoint() {
     return awsRuntime.invokeEndpoint(params).promise();
 }
 
+//Lambda function for plotting real data.
+// exports.handler = async (event, context, callback) => {
 
-//Handler for Lambda function
+//     try {
+//         let yValues = []; //holds the prices
+//         //basic X values for plot
+//         let xValues = [];
+
+//         //promise awaiting
+//         const Item  = await readCryptoData();
+//         Item.Items.forEach(function(item) {
+//             yValues.push(item.Price);
+//             xValues.push(item.PriceTimeStamp);
+//         });
+
+//         // console.log(yValues);
+//         // console.log(xValues);
+
+//         var yRealLine = {
+//           x: xValues,
+//           y: yValues,
+//           mode: 'lines',
+//           name: 'Real Data'
+//         };
+
+//         lines.push(yRealLine);
+//     }
+//     catch (err) {
+//         console.log("ERROR: " + JSON.stringify(err));
+//         return {
+//             statusCode: 500,
+//             body: "Error plotting data for coin: " + err
+//         };
+//     }
+// };
+
+//Handler for Lambda function, PREDICTIONS DATA PLOTTER
 exports.handler = async (event, context, callback) => {
+    //Holds the original line, mean line, 0.1% quantile line, 0.9% quantile line and the sample line
+    let lines = [];
+
     try {
 
-        //promise awaiting
-        const Item  = await readEndpoint();
+        //GET real data
+        let yValues = []; //holds the prices
+        //basic X values for plot
+        let xValues = [];
 
-        const predictions = JSON.parse(Buffer.from(Item.Body)).predictions;
+        //promise awaiting
+        const Item  = await readCryptoData();
+        Item.Items.forEach(function(item) {
+            yValues.push(item.Price);
+            xValues.push(item.PriceTimeStamp);
+        });
+
+        // console.log(yValues);
+        // console.log(xValues);
+
+        var yRealLine = {
+            x: xValues,
+            y: yValues,
+            mode: 'lines',
+            name: 'Real Data'
+        };
+
+        lines.push(yRealLine);
+
+        //GET predictions from sagemaker
+        //promise awaiting
+        const predictionItem  = await readEndpoint();
+
+        const predictions = JSON.parse(Buffer.from(predictionItem.Body)).predictions;
         const mean = predictions[0]['mean'];
         const lowerQuantile = predictions[0]['quantiles']['0.1'];
         const upperQuantile = predictions[0]['quantiles']['0.9'];
@@ -85,10 +158,10 @@ exports.handler = async (event, context, callback) => {
             ySample.push(value);
         });
 
-        let xValues = []; //+=  86400 for 1000 data sets
+        xValues = []; //+=  86400 for 1000 data sets
 
         for(let xIndex = 1; xIndex <= ySample.length; xIndex++) {
-            let timeStamp = 1626480000 * xIndex;
+            let timeStamp = 1626480000 + ( 86400 * xIndex);
             xValues[xIndex-1] = (timeStamp);
         }
         console.log("x: " + xValues);
@@ -96,8 +169,8 @@ exports.handler = async (event, context, callback) => {
         var yMeanLine = {
             x: xValues,
             y: yMean,
-            mode: 'lines'
-            //   name: 'Lines'
+            mode: 'lines',
+            name: 'Mean'
         };
 
         var yLQLine = {
@@ -121,7 +194,13 @@ exports.handler = async (event, context, callback) => {
             name: 'Sample'
         };
 
-        let lines = [yMeanLine, yLQLine, yUQLine, ySampleLine];
+        lines.push(yMeanLine);
+        lines.push(yLQLine);
+        lines.push(yUQLine);
+        lines.push(ySampleLine);
+        console.log(lines);
+
+        //Plot data onto Plotly
         plotData("BTC", lines);
 
         return {
@@ -137,7 +216,7 @@ exports.handler = async (event, context, callback) => {
         };
         return response;
     }
-}
+};
 
 //Plots the specified data
 async function plotData(categoryName, data){

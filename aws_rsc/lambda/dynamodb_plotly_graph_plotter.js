@@ -1,6 +1,6 @@
 //aws-sdk will be used to read the data from dynamodb and make an API request to get CloudWatch's data.
 let AWS = require("aws-sdk");
-
+,
 // The database and table are 'in us-east-1'
 const ddb = new AWS.DynamoDB.DocumentClient({region: 'us-east-1'});
 // //Axios will handle HTTP requests to web service
