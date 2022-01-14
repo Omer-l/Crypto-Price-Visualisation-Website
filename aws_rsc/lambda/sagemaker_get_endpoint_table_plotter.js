@@ -35,7 +35,10 @@ let endpointData = {
 
 function readCryptoData() {
     const params = {
-        TableName: 'CryptoData'
+        TableName: 'CryptoData',
+        IndexName: 'Currency-PriceTimeStamp-index',
+        KeyConditionExpression: 'primeTimeStamp= :primeTimeStamp',
+        ScanIndexForward: false
     }
     return ddb.scan(params).promise();
 }
@@ -201,7 +204,7 @@ exports.handler = async (event, context, callback) => {
         console.log(lines);
 
         //Plot data onto Plotly
-        plotData("BTC", lines);
+        // plotData("BTC", lines);
 
         return {
             statusCode: 200,
