@@ -124,7 +124,7 @@ var Put;
                                 var price = (crypto.open + crypto.low + crypto.high) / 3; //takes the average price for the coin
                                 var time = crypto.time;
                                 //Table name and data for table
-                                var params_1 = {
+                                var params = {
                                     TableName: "CryptoData",
                                     Item: {
                                         PriceTimeStamp: time,
@@ -134,15 +134,14 @@ var Put;
                                 };
                                 target.push(price);
                                 //Store data in DynamoDB and handle errors
-                                documentClient.put(params_1, function (err, data) {
-                                    if (err) {
-                                        console.error("Unable to add item", params_1.Item.Currency);
-                                        console.error("Error JSON:", JSON.stringify(err));
-                                    }
-                                    else {
-                                        console.log("Currency added to table:", params_1.Item);
-                                    }
-                                });
+                                // documentClient.put(params, (err, data) => {
+                                //     if (err) {
+                                //         console.error("Unable to add item", params.Item.Currency);
+                                //         console.error("Error JSON:", JSON.stringify(err));
+                                //     } else {
+                                //         console.log("Currency added to table:", params.Item);
+                                //     }
+                                // });
                             }
                         });
                         sageMakerList.target = target;
