@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var Put;
 (function (Put) {
+    //To coneect to Amazon Web Services DynamoDB database
     var AWS = require("aws-sdk");
     //Used to writing to data json file
     var fs = require("fs");

@@ -1,4 +1,5 @@
 namespace Put {
+    //To coneect to Amazon Web Services DynamoDB database
     let AWS = require("aws-sdk");
 
 //Used to writing to data json file
