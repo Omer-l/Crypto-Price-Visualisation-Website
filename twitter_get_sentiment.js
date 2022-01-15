@@ -15,9 +15,9 @@ client.v2.search('bitcoin', {
     'user.fields': [
         'description',
     ],
-    // 'max_results': [
-    //     '2',
-    // ]
+    'max_results': [
+        '10',
+    ]
 }).then(function (val) {
     var data = val.data;
     // data.forEach((tweet) => {
