@@ -52,30 +52,28 @@ exports.handler = (event) => {
 
     tweets.then((tweetMessages) => {
 
-        // tweets.forEach(function(tweet) {
-        console.log("TWEET: " + tweetMessages);
+        tweetMessages.forEach(function(tweet) {
 
-        //Parameters for call to AWS Comprehend
-        // let params = {
-        //     LanguageCode: "en",//Possible values include: "en", "es", "fr", "de", "it", "pt"
-        //     Text: tweets[0]
-        // };
+            // Parameters for call to AWS Comprehend
+            let params = {
+                LanguageCode: "en",//Possible values include: "en", "es", "fr", "de", "it", "pt"
+                Text: tweet
+            };
 
-        // comprehend.detectSentiment(params, (comprehendErr, data) => {
-        //     //Log result or error
-        //     if (comprehendErr) {
-        //         console.log("\nError with call to Comprehend:\n" + JSON.stringify(comprehendErr));
-        //     }
-        //     else {
-        //         console.log("\nSuccessful call to Comprehend:\n" + JSON.stringify(data));
-        //     }
-        // });
+            comprehend.detectSentiment(params, (comprehendErr, data) => {
+                //Log result or error
+                if (comprehendErr) {
+                    console.log("\nError with call to Comprehend:\n" + JSON.stringify(comprehendErr));
+                }
+                else {
+                    console.log("\nSuccessful call to Comprehend:\n" + JSON.stringify(data));
+                }
+            });
+        });
     });
 
-    // return {
-    //     statusCode: 200,
-    //     body: "Ok"
-    // };
+    return {
+        statusCode: 200,
+        body: "Ok"
+    };
 };
-
-
