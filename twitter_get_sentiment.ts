@@ -14,10 +14,11 @@ namespace Twitter_Sentiment_Scanner {
     AWS.config.update({
         region: "us-east-1",
         endpoint: "https://dynamodb.us-east-1.amazonaws.com",
-        accessKeyId: 'ASIA2ZOJXFRAAUVTPTBS',
-        secretAccessKey: '371USrO7izMH2prtOuXnNUc+Oa+PoyizlYdzkTV6',
-        sessionToken: 'FwoGZXIvYXdzEEAaDOUSbZBecusfx8ca4CLFAbNFCbVpj83BjoGw5rstlDV28V9CouC7Pn6CO0sDzTZmRsx4X0qukdPDcBFZbMplctLxkgMgObwGuyXqLGFNwnV6p+nhZrTAhkQoVWPCXkO76mRSpTH1B3RXPwQ1bZCFtr947JSRH4eJEWymfMAIXo/18XPi/iSz7uAV19Xx8ju1FnmSz6BVwBbIjJqG2ntlHzRld0u1LVEjtypCYu1zIwVlu3FZg2CPchdtI8nNnn9XI31GKQ4rgEzegmHDgHCbxemr/Q0+KKTJ+44GMi3KWc7DZNUSWIh9ZYh3QtYIwjlZHQ/zKr/pe4Ro1U1k8wIlNbiFzy9YpgL21O4='
+        accessKeyId: 'ASIA2ZOJXFRAI2IHXEWM',
+        secretAccessKey: '3EiFOlW/DJRriFN4EpdVa8NBMtZkKItwOtpZkgUt',
+        sessionToken: 'FwoGZXIvYXdzEIv//////////wEaDDfaUK0VgqQuI0m/KCLFAWQ5Uz3aB5UkGeIQdBw5cu3VV+jsWCUqX5XGpDASNEXUEghK8eBW8vlnzFnwp1kXNgh233L9agvp+06eYyBBENQVX5cnIDJYDBggJF6l3bf0B73Emx6IoKqIfNxLW7taW1eDvA+t1B/1XWBhU8+jHGHy0snEmyrNc7A93Ss4LWh4dzT3YAdYZ1Ah0dp/yVnfdtRU1g6IMW2Vb0a3wbStNacdO4aazGY36UVmHDRHOtlgBjMWqY05bsHi0Va+eIpz/GmLZFnfKKCDjI8GMi15NbJsOShjZoI5NZyER5XlfrGq4YhUlpGri9jIztwaU4H4maOZSVyFcIE5aHU='
     });
+    let documentClient = new AWS.DynamoDB.DocumentClient(); //for pushing onto database table
 
 //For reading in the tweets
     interface Tweet {
@@ -30,8 +31,6 @@ namespace Twitter_Sentiment_Scanner {
     interface Tweets {
         tweets: Array<Tweet>,
     }
-
-    let tweets: Array<Tweet>; //holds tweets
 
     twitterAPI.v2.search('bitcoin', {
         'tweet.fields': [
@@ -47,19 +46,34 @@ namespace Twitter_Sentiment_Scanner {
             '10',
         ]
     }).then((val) => {
-        let tweets = JSON.parse(JSON.stringify(val.data['data']));
-        console.log(tweets[0]);
+        let tweets = JSON.parse(JSON.stringify(val.data['data'])); //holds tweets
+        tweets.forEach((tweet) => {
+        let text = tweet.text;
+        let date = tweet.created_at;
+        date = date.replaceAll("T", " ");
+        date = date.substring(0, date.indexOf('.'));
 
+            console.log("NEW TWEET DATE: " + date);
+        console.log("NEW TWEET : " + text);
 
-        //Store data in DynamoDB and handle errors
-        // documentClient.put(params, (err, data) => {
-        //     if (err) {
-        //         console.error("Unable to add item", params.Item.Currency);
-        //         console.error("Error JSON:", JSON.stringify(err));
-        //     } else {
-        //         console.log("Currency added to table:", params.Item);
-        //     }
-        // });
+            //Table name and data for table
+            let params = {
+                TableName: "sentimentData",
+                Item: {
+                    date: date,
+                    tweet_message: text
+                }
+            };
+            //Store data in DynamoDB and handle errors
+            documentClient.put(params, (err, data) => {
+                if (err) {
+                    console.error("Unable to add item", params.Item.tweet_message);
+                    console.error("Error JSON:", JSON.stringify(err));
+                } else {
+                    console.log("Tweet added to table:", params.Item);
+                }
+            });
+        });
     }).catch((err) => {
         console.log(err);
     });
