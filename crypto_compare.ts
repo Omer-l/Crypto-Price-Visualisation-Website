@@ -23,6 +23,19 @@ namespace Put {
         EUR: number
     }
 
+    interface Data {
+        time: number,
+        high: number,
+        low: number,
+        open: number,
+        volumefrom: number,
+        volumeto: number,
+        close: number,
+        conversionType: string,
+        conversionSymbol: string
+
+    }
+
 //The data structure returned in the message body by fixer.io
     interface FixerObject {
         Response: string,
@@ -34,17 +47,7 @@ namespace Put {
             Aggregated: boolean,
             TimeFrom: number,
             TimeTo: number,
-            Data: [
-                time: number,
-                high: number,
-                low: number,
-                open: number,
-                volumefrom: number,
-                volumeto: number,
-                close: number,
-                conversionType: string,
-                conversionSymbol: string
-            ]
+            Data: Array<Data>,
         }
     }
 
