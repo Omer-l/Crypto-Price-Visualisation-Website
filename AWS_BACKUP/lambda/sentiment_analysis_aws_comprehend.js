@@ -8,7 +8,7 @@ const ddb = new AWS.DynamoDB.DocumentClient({ region: 'us-east-1' });
 let comprehend = new AWS.Comprehend();
 
 // Function readTwitterData
-// Reads 10 CryptoDatas from the DynamoDb table CryptoData
+// Reads Twitter data from the DynamoDb table sentimentData
 // Returns promise
 function readTwitterData() {
     const params = {
