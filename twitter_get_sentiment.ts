@@ -14,9 +14,9 @@ namespace Twitter_Sentiment_Scanner {
     AWS.config.update({
         region: "us-east-1",
         endpoint: "https://dynamodb.us-east-1.amazonaws.com",
-        accessKeyId: 'ASIA2ZOJXFRAI2IHXEWM',
-        secretAccessKey: '3EiFOlW/DJRriFN4EpdVa8NBMtZkKItwOtpZkgUt',
-        sessionToken: 'FwoGZXIvYXdzEIv//////////wEaDDfaUK0VgqQuI0m/KCLFAWQ5Uz3aB5UkGeIQdBw5cu3VV+jsWCUqX5XGpDASNEXUEghK8eBW8vlnzFnwp1kXNgh233L9agvp+06eYyBBENQVX5cnIDJYDBggJF6l3bf0B73Emx6IoKqIfNxLW7taW1eDvA+t1B/1XWBhU8+jHGHy0snEmyrNc7A93Ss4LWh4dzT3YAdYZ1Ah0dp/yVnfdtRU1g6IMW2Vb0a3wbStNacdO4aazGY36UVmHDRHOtlgBjMWqY05bsHi0Va+eIpz/GmLZFnfKKCDjI8GMi15NbJsOShjZoI5NZyER5XlfrGq4YhUlpGri9jIztwaU4H4maOZSVyFcIE5aHU='
+        accessKeyId: 'ASIA2ZOJXFRAKF4RLFOR',
+        secretAccessKey: 'Ajk5QFCFVjL5fhK/u3fOjV8td8K9yCSuy0RvUPMl',
+        sessionToken: 'FwoGZXIvYXdzEO7//////////wEaDMPb7UXiKatSYTWBbyLFAb1lPhtTLy+9eSgNw3zIKoMqidFSGMz1ZL3xwrZ+MysAsRzgAVd2+oY1YhH2WTSMSJh2HM+pX04XRzba3ORS05wWIUmxQ+74DYms1XBq9KbpcUdfzcGadIetfbzDjtLLkG3tDwRbj9nWl86uZm+bopHJuRZag0j+OCvqQQd3Tcu7zHsjL31JqbdsmErY+6evMBDLdwi+xn3hKydNwC4Ot0XddaSSPxqZieQlKD3q5Z1BtYyR4LrvM8wsiXzYNW+CxtEGACpaKLv92Y8GMi3ziAoRw3ymXwjqeqey7lw8EWHSuXXjLx1Iwzxg6RD/nHMCtYwUHL+MPNYngwQ='
     });
     let documentClient = new AWS.DynamoDB.DocumentClient(); //for pushing onto database table
 
@@ -43,7 +43,7 @@ namespace Twitter_Sentiment_Scanner {
             'description',
         ],
         'max_results': [
-            '10',
+            '90',
         ]
     }).then((val) => {
         let tweets = JSON.parse(JSON.stringify(val.data['data'])); //holds tweets

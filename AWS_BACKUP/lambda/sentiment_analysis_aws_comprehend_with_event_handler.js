@@ -35,13 +35,13 @@ async function getTweets() {
 }
 
 exports.handler = (event) => {
-    const tweets = getTweets(); //holds the tweets
+    for (let record of event.Records) {
 
-    tweets.then((tweets) => { //after promise fulfilled
+        //Handle INSERT request only.
+        if (record.eventName === "INSERT") {
+            let tweetMessage = record.dynamodb.NewImage.tweet_message.S;
+            let tweetDate = record.dynamodb.NewImage.date.S;
 
-        tweets.forEach(function(tweet) {
-            let tweetMessage = tweet.tweet_message;
-            let tweetDate = tweet.date;
             console.log("DATE: " + tweetDate);
             tweetDate = tweetDate.replace("T", " ");
 
@@ -56,7 +56,7 @@ exports.handler = (event) => {
                 if (comprehendErr) {
                     console.log("\nError with call to Comprehend:\n" + JSON.stringify(comprehendErr));
                 }
-                else { //SAMPLE : { "Sentiment": "NEUTRAL", "SentimentScore": { "Positive": 0.05800758674740791, "Negative": 0.014315063133835793, "Neutral": 0.9269210696220398, "Mixed": 0.0007562938844785094 } }
+                else {
                     console.log("\nSuccessful call to Comprehend:\n" + data.SentimentScore.Positive);
 
                     //sends data to database.
@@ -67,9 +67,10 @@ exports.handler = (event) => {
                         Item: {
                             date: tweetDate,
                             message: tweetMessage,
-                            positiveScore: data.SentimentScore.Positive,
-                            neutralScore: data.SentimentScore.Neutral,
-                            negativeScore: data.SentimentScore.Negative,
+                            Positive: data.SentimentScore.Positive,
+                            Negative: data.SentimentScore.Negative,
+                            Neutral: data.SentimentScore.Neutral,
+                            Mixed: data.SentimentScore.Mixed,
                         },
                     };
 
@@ -85,9 +86,8 @@ exports.handler = (event) => {
                     });
                 }
             });
-        });
-    });
-
+        }
+    }
     return {
         statusCode: 200,
         body: "Ok"
