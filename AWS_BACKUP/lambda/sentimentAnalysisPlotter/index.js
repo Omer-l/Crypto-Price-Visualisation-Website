@@ -1,5 +1,7 @@
 //aws-sdk will be used to get DynamoDB
 let AWS = require("aws-sdk");
+//Import external library with websocket functions
+let ws = require('websocket');
 
 // The database and table are 'in us-east-1'
 const ddb = new AWS.DynamoDB.DocumentClient({ region: 'us-east-1' });
@@ -10,6 +12,11 @@ let comprehend = new AWS.Comprehend();
 //Authentication details for Plotly
 const PLOTLY_USERNAME = 'omerka1';
 const PLOTLY_KEY = 'CngH9Ebp1Ee7SKaVJVPY';
+
+
+//Hard coded domain name and stage - use when pushing messages from server to client
+let domainName = "7dxr2k9a9b.execute-api.us-east-1.amazonaws.com";
+let stage = "prod";
 
 //Initialize Plotly with user details.
 let plotly = require('plotly')(PLOTLY_USERNAME, PLOTLY_KEY);
@@ -41,9 +48,10 @@ async function getTweets() {
     return tweets;
 }
 
-exports.handler = (event) => {
+exports.handler = async (event) => {
     const tweets = getTweets(); //holds the tweets
-    tweets.then((tweets) => { //after promise fulfilled
+    //count polarity of each tweet, is it mostly positive? negative? neutral? mixed?
+    let counter = await tweets.then((tweets) => { //after promise fulfilled
         let polarityCounter = [0, 0, 0, 0]; //index: 0 = positive, 1 = negative, 2 = neutral, 3 = mixed
 
         tweets.forEach(function(tweet) {
@@ -61,9 +69,28 @@ exports.handler = (event) => {
             polarityCounter[index]++;
 
         });
-        //plots the results
-        let plotResult = plotData(polarityCounter);
+        return polarityCounter;
     });
+
+    let msg = {
+        data : {
+            values: counter,
+            labels: ['Positive', 'Negative', 'Neutral', 'Mixed'],
+            type: 'pie'
+        },
+        layout : {
+            height: 400,
+            width: 500
+        }};
+    let msgString = JSON.stringify(msg);
+    console.log("HELLOW: " + msgString);
+    //Get promises to send messages to connected clients
+    let sendMsgPromises = await ws.getSendMessagePromises(msgString, domainName, stage);
+    //Execute promises
+    await Promise.all(sendMsgPromises);
+
+    // plots the results
+    // plotData(polarityCounter);
 
     return {
         statusCode: 200,
@@ -71,10 +98,8 @@ exports.handler = (event) => {
     };
 };
 
-
-
 //Plots the specified data
-async function plotData(polarityCounter){
+function plotData(polarityCounter){
     var data = [{
         values: polarityCounter,
         labels: ['Positive', 'Negative', 'Neutral', 'Mixed'],
@@ -85,14 +110,5 @@ async function plotData(polarityCounter){
         height: 400,
         width: 500
     };
-
-    return new Promise ( (resolve, reject)=> {
-        plotly.plot(data, layout, function (err, msg) {
-            if (err)
-                reject(err);
-            else {
-                resolve(msg);
-            }
-        });
-    });
+    plotly.plot(data, layout);
 }

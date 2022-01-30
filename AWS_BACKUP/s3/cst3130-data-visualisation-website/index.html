@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Coursework2</title>
+<!--    Plotly.js for graph plotting.-->
+    <script src="https://cdn.plot.ly/plotly-2.8.3.min.js"></script>
 </head>
 <body>
 <h1> Hello World!!</h1>
@@ -18,7 +20,7 @@
 <h1>Messages from Server</h1>
 <p style="border-style: solid; width: 500px; border-width: 1px;" id="messages"></p>
 
-<!--<script src="wsConnect.js"></script>-->
+<div id="pieDiv"></div>
 <script>
     //Open connection
     let connection = new WebSocket("wss://7dxr2k9a9b.execute-api.us-east-1.amazonaws.com/prod");
@@ -30,8 +32,30 @@
 
     //Output messages from the server
     connection.onmessage = function(msg){
-        document.getElementById("messages").innerHTML += ("Server message: " + msg.data + "<br />");
-        console.log("Message received.");
+        let message = msg.data;
+
+        if(message.includes("pie")) {
+            let plotlyData = JSON.parse(message);
+            let values = plotlyData.data.values;
+            let labels = plotlyData.data.labels;
+            let type = plotlyData.data.type;
+            let pieLayout = plotlyData.layout;
+
+            var data = [{
+                values: values,
+                labels: labels,
+                type: type
+            }];
+
+            var layout = {
+                height: 400,
+                width: 500
+            };
+            Plotly.newPlot('pieDiv', data, pieLayout);
+        } else {
+            document.getElementById("messages").innerHTML += ("Server message: " + message + "<br />");
+            console.log("Message received.");
+        }
     }
 
     //Log errors
