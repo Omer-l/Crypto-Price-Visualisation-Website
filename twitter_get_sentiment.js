@@ -18,49 +18,65 @@ var Twitter_Sentiment_Scanner;
         sessionToken: 'FwoGZXIvYXdzEO7//////////wEaDMPb7UXiKatSYTWBbyLFAb1lPhtTLy+9eSgNw3zIKoMqidFSGMz1ZL3xwrZ+MysAsRzgAVd2+oY1YhH2WTSMSJh2HM+pX04XRzba3ORS05wWIUmxQ+74DYms1XBq9KbpcUdfzcGadIetfbzDjtLLkG3tDwRbj9nWl86uZm+bopHJuRZag0j+OCvqQQd3Tcu7zHsjL31JqbdsmErY+6evMBDLdwi+xn3hKydNwC4Ot0XddaSSPxqZieQlKD3q5Z1BtYyR4LrvM8wsiXzYNW+CxtEGACpaKLv92Y8GMi3ziAoRw3ymXwjqeqey7lw8EWHSuXXjLx1Iwzxg6RD/nHMCtYwUHL+MPNYngwQ='
     });
     var documentClient = new AWS.DynamoDB.DocumentClient(); //for pushing onto database table
-    twitterAPI.v2.search('bitcoin', {
-        'tweet.fields': [
-            'created_at',
-        ],
-        'expansions': [
-            'author_id',
-        ],
-        'user.fields': [
-            'description',
-        ],
-        'max_results': [
-            '90',
-        ]
-    }).then(function (val) {
-        var tweets = JSON.parse(JSON.stringify(val.data['data'])); //holds tweets
-        tweets.forEach(function (tweet) {
-            var text = tweet.text;
-            var date = tweet.created_at;
-            date = date.replaceAll("T", " ");
-            date = date.substring(0, date.indexOf('.'));
-            console.log("NEW TWEET DATE: " + date);
-            console.log("NEW TWEET : " + text);
-            //Table name and data for table
-            var params = {
-                TableName: "sentimentData",
-                Item: {
-                    date: date,
-                    tweet_message: text
-                }
-            };
-            //Store data in DynamoDB and handle errors
-            documentClient.put(params, function (err, data) {
-                if (err) {
-                    console.error("Unable to add item", params.Item.tweet_message);
-                    console.error("Error JSON:", JSON.stringify(err));
-                }
-                else {
-                    console.log("Tweet added to table:", params.Item);
-                }
-            });
-        });
-    }).catch(function (err) {
-        console.log(err);
-    });
+    function dateToMilliseconds(created_at) {
+        var created_at = "2022-01-31T02:35:18.000Z";
+        created_at = created_at.replaceAll("T", " ");
+        created_at = created_at.replaceAll("Z", "");
+        var splitT = created_at.split(" ");
+        var dateSplit = splitT[0].split("-");
+        var timeSplit = splitT[1].split(":");
+        var year = Number(dateSplit[0]);
+        var month = Number(dateSplit[1]);
+        var day = Number(dateSplit[2]);
+        var hour = Number(timeSplit[0]);
+        var minute = Number(timeSplit[1]);
+        var second = Number(timeSplit[2]);
+        var date = new Date(year, month, day, hour, minute, second);
+    }
+    // twitterAPI.v2.search('bitcoin', {
+    //     'tweet.fields': [
+    //         'created_at',
+    //     ],
+    //     'expansions': [
+    //         'author_id',
+    //     ],
+    //     'user.fields': [
+    //         'description',
+    //     ],
+    //     'max_results': [
+    //         '11',
+    //     ]
+    // }).then((val) => {
+    //     let tweets = JSON.parse(JSON.stringify(val.data['data'])); //holds tweets
+    //     tweets.forEach((tweet) => {
+    //     // let text = tweet.text;
+    //     // let date = tweet.created_at;
+    //     // date = date.replaceAll("T", " ");
+    //     // date = date.substring(0, date.indexOf('.'));
+    //     //
+    //     //     console.log("NEW TWEET DATE: " + date);
+    //     console.log("NEW TWEET : " + JSON.stringify(tweet));
+    //
+    //         //Table name and data for table
+    //         let params = {
+    //             TableName: "sentimentData",
+    //             Item: {
+    //                 date: date,
+    //                 tweet_message: text
+    //             }
+    //         };
+    //         //Store data in DynamoDB and handle errors
+    //         // documentClient.put(params, (err, data) => {
+    //         //     if (err) {
+    //         //         console.error("Unable to add item", params.Item.tweet_message);
+    //         //         console.error("Error JSON:", JSON.stringify(err));
+    //         //     } else {
+    //         //         console.log("Tweet added to table:", params.Item);
+    //         //     }
+    //         // });
+    //     });
+    // }).catch((err) => {
+    //     console.log(err);
+    // });
 })(Twitter_Sentiment_Scanner || (Twitter_Sentiment_Scanner = {}));
 //# sourceMappingURL=twitter_get_sentiment.js.map

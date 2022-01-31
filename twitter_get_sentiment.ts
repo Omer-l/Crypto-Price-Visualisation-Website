@@ -31,50 +31,65 @@ namespace Twitter_Sentiment_Scanner {
     interface Tweets {
         tweets: Array<Tweet>,
     }
+function dateToMilliseconds(created_at) {
+    let created_at = "2022-01-31T02:35:18.000Z";
+    created_at = created_at.replaceAll("T", " ");
+    created_at = created_at.replaceAll("Z", "");
+    let splitT = created_at.split(" ");
+    let dateSplit = splitT[0].split("-");
+    let timeSplit = splitT[1].split(":");
+    let year =  Number(dateSplit[0]);
+    let month = Number(dateSplit[1]);
+    let day =   Number(dateSplit[2]);
+    let hour =  Number(timeSplit[0]);
+    let minute =Number( timeSplit[1]);
+    let second =Number( timeSplit[2]);
+    let date = new Date(year, month, day, hour, minute, second);
+}
 
-    twitterAPI.v2.search('bitcoin', {
-        'tweet.fields': [
-            'created_at',
-        ],
-        'expansions': [
-            'author_id',
-        ],
-        'user.fields': [
-            'description',
-        ],
-        'max_results': [
-            '90',
-        ]
-    }).then((val) => {
-        let tweets = JSON.parse(JSON.stringify(val.data['data'])); //holds tweets
-        tweets.forEach((tweet) => {
-        let text = tweet.text;
-        let date = tweet.created_at;
-        date = date.replaceAll("T", " ");
-        date = date.substring(0, date.indexOf('.'));
-
-            console.log("NEW TWEET DATE: " + date);
-        console.log("NEW TWEET : " + text);
-
-            //Table name and data for table
-            let params = {
-                TableName: "sentimentData",
-                Item: {
-                    date: date,
-                    tweet_message: text
-                }
-            };
-            //Store data in DynamoDB and handle errors
-            documentClient.put(params, (err, data) => {
-                if (err) {
-                    console.error("Unable to add item", params.Item.tweet_message);
-                    console.error("Error JSON:", JSON.stringify(err));
-                } else {
-                    console.log("Tweet added to table:", params.Item);
-                }
-            });
-        });
-    }).catch((err) => {
-        console.log(err);
-    });
+    // twitterAPI.v2.search('bitcoin', {
+    //     'tweet.fields': [
+    //         'created_at',
+    //     ],
+    //     'expansions': [
+    //         'author_id',
+    //     ],
+    //     'user.fields': [
+    //         'description',
+    //     ],
+    //     'max_results': [
+    //         '11',
+    //     ]
+    // }).then((val) => {
+    //     let tweets = JSON.parse(JSON.stringify(val.data['data'])); //holds tweets
+    //     tweets.forEach((tweet) => {
+    //     // let text = tweet.text;
+    //     // let date = tweet.created_at;
+    //     // date = date.replaceAll("T", " ");
+    //     // date = date.substring(0, date.indexOf('.'));
+    //     //
+    //     //     console.log("NEW TWEET DATE: " + date);
+    //     console.log("NEW TWEET : " + JSON.stringify(tweet));
+    //
+    //         //Table name and data for table
+    //         let params = {
+    //             TableName: "sentimentData",
+    //             Item: {
+    //                 date: date,
+    //                 tweet_message: text
+    //             }
+    //         };
+    //         //Store data in DynamoDB and handle errors
+    //         // documentClient.put(params, (err, data) => {
+    //         //     if (err) {
+    //         //         console.error("Unable to add item", params.Item.tweet_message);
+    //         //         console.error("Error JSON:", JSON.stringify(err));
+    //         //     } else {
+    //         //         console.log("Tweet added to table:", params.Item);
+    //         //     }
+    //         // });
+    //     });
+    // }).catch((err) => {
+    //     console.log(err);
+    // });
 }
