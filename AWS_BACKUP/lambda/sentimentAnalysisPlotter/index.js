@@ -98,6 +98,8 @@ exports.handler = async (event) => {
     };
 };
 
+
+
 //Plots the specified data
 function plotData(polarityCounter){
     var data = [{
