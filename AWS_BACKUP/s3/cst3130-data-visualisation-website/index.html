@@ -34,7 +34,28 @@
 <div id="numericalGraphDiv"></div>
 <h1>Sentiment Analysis</h1>
 <button type="button" class="btn btn-secondary btn-lg btn-block" onclick="updatePieChart()">Refresh Pie Chart(s)</button>
-<div id="pieDiv"></div>
+<!--<div id="pieDiv"></div>-->
+<div class="container">
+    <div class="row">
+        <div class="col" id="pieDiv">
+            BTC
+        </div>
+        <div class="col" id="pieDiv2">
+            BDD
+        </div>
+    </div>
+    <div class="row">
+        <div class="col" id="pieDiv3">
+            RSS
+        </div>
+        <div class="col" id="pieDiv4">
+            LSS
+        </div>
+        <div class="col" id="pieDiv5">
+            KTS
+        </div>
+    </div>
+</div>
 <h1>Synthetic Data</h1>
 <script>
     //Open connection
@@ -65,10 +86,14 @@
             }];
 
             var layout = {
-                height: 400,
-                width: 500
+                height: 350,
+                width: 300
             };
-            Plotly.newPlot('pieDiv', data, pieLayout);
+            Plotly.newPlot('pieDiv', data, layout);
+            Plotly.newPlot('pieDiv2', data,layout);
+            Plotly.newPlot('pieDiv3', data,layout);
+            Plotly.newPlot('pieDiv4', data,layout);
+            Plotly.newPlot('pieDiv5', data,layout);
         } else if (message.includes("numerical")) {
             let plotlyData = JSON.parse(message);
             let lines = plotlyData.data;
