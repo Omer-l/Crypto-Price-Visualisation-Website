@@ -66,18 +66,19 @@ namespace Put {
 
     var date = new Date(1605916800);
     var dt = date.getTime();
+    let currencies = ["BTC", "ETH", "LUNA", "BNB", "ADA"];
 
 //Class that wraps fixer.io web service
     export class Fixer {
-        //Base URL of fixer.io API ?fsym=BTC&tsym=USD&limit=1000
+        //Base URL of CryptoCompare
         baseURL: string = "https://min-api.cryptocompare.com/data/v2/histoday";
         accessKey = "000b9badd6690c6fa779bde8d4133afbdf0701b864691c454d3c349b88f3464d";
 
         //Returns a Promise that will get the exchange rates for the specified date
-        getExchangeRates(): Promise<object> {
+        getExchangeRates(currency): Promise<object> {
             //Build URL for API call
             let url: string = this.baseURL + "?";
-            url += "fsym=BTC&tsym=USD&limit=1900";
+            url += "fsym=" + currency + "&tsym=USD&limit=5";
             url += "&api_key=" + this.accessKey;
 
             //Output URL and return Promise
@@ -89,6 +90,8 @@ namespace Put {
 
 //Gets the historical data for a range of dates.
     async function getHistoricalData() {
+        for(let index = 0; index < currencies.length; index++) {
+            let currency = currencies[index];
         /* You should check that the start date plus the number of days is
         less than the current date*/
 
@@ -104,7 +107,7 @@ namespace Put {
         // //Work forward from start date
         // for (let i: number = 0; i < numDays; ++i) {
         //     //Add axios promise to array
-        promiseArray.push(fixerIo.getExchangeRates());
+        promiseArray.push(fixerIo.getExchangeRates(currency));
 
         //     //Increase the number of days
         //     date.add(1, 'days');
@@ -148,7 +151,7 @@ namespace Put {
 
 //Create new DocumentClient
                     let documentClient = new AWS.DynamoDB.DocumentClient();
-                    let price: number = (crypto.open +  crypto.low + crypto.high) / 3; //takes the average price for the coin
+                    let price: number = (crypto.open + crypto.low + crypto.high) / 3; //takes the average price for the coin
                     let time = crypto.time;
 
                     //Table name and data for table
@@ -156,7 +159,7 @@ namespace Put {
                         TableName: "CryptoData",
                         Item: {
                             PriceTimeStamp: time,//Current time in milliseconds
-                            Currency: "BTC",
+                            Currency: currency,
                             Price: price
                         }
                     };
@@ -173,16 +176,17 @@ namespace Put {
                     // });
                 }
             });
-            sageMakerList.target = target;
-            fs.writeFile('synthetic_data_1_train.json', JSON.stringify(sageMakerList), function (err) {
-                if (err) {
-                    throw err;
-                }
-                console.log("JSON data is saved.");
-            });
+            // sageMakerList.target = target;
+            // fs.writeFile('synthetic_data_1_train.json', JSON.stringify(sageMakerList), function (err) {
+            //     if (err) {
+            //         throw err;
+            //     }
+            //     console.log("JSON data is saved.");
+            // });
         } catch (error) {
             console.log("Error: " + JSON.stringify(error));
         }
+    }
     }
 
 //Call function to get historical data
