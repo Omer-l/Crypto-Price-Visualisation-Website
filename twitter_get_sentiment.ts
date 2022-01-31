@@ -47,49 +47,49 @@ function dateToMilliseconds(created_at) {
     let date = new Date(year, month, day, hour, minute, second);
 }
 
-    // twitterAPI.v2.search('bitcoin', {
-    //     'tweet.fields': [
-    //         'created_at',
-    //     ],
-    //     'expansions': [
-    //         'author_id',
-    //     ],
-    //     'user.fields': [
-    //         'description',
-    //     ],
-    //     'max_results': [
-    //         '11',
-    //     ]
-    // }).then((val) => {
-    //     let tweets = JSON.parse(JSON.stringify(val.data['data'])); //holds tweets
-    //     tweets.forEach((tweet) => {
-    //     // let text = tweet.text;
-    //     // let date = tweet.created_at;
-    //     // date = date.replaceAll("T", " ");
-    //     // date = date.substring(0, date.indexOf('.'));
-    //     //
-    //     //     console.log("NEW TWEET DATE: " + date);
-    //     console.log("NEW TWEET : " + JSON.stringify(tweet));
-    //
-    //         //Table name and data for table
-    //         let params = {
-    //             TableName: "sentimentData",
-    //             Item: {
-    //                 date: date,
-    //                 tweet_message: text
-    //             }
-    //         };
-    //         //Store data in DynamoDB and handle errors
-    //         // documentClient.put(params, (err, data) => {
-    //         //     if (err) {
-    //         //         console.error("Unable to add item", params.Item.tweet_message);
-    //         //         console.error("Error JSON:", JSON.stringify(err));
-    //         //     } else {
-    //         //         console.log("Tweet added to table:", params.Item);
-    //         //     }
-    //         // });
-    //     });
-    // }).catch((err) => {
-    //     console.log(err);
-    // });
+    twitterAPI.v2.search('bitcoin', {
+        'tweet.fields': [
+            'created_at',
+        ],
+        'expansions': [
+            'author_id',
+        ],
+        'user.fields': [
+            'description',
+        ],
+        'max_results': [
+            '11',
+        ]
+    }).then((val) => {
+        let tweets = JSON.parse(JSON.stringify(val.data['data'])); //holds tweets
+        tweets.forEach((tweet) => {
+        // let text = tweet.text;
+        // let date = tweet.created_at;
+        // date = date.replaceAll("T", " ");
+        // date = date.substring(0, date.indexOf('.'));
+        //
+        //     console.log("NEW TWEET DATE: " + date);
+        console.log("NEW TWEET : " + JSON.stringify(tweet));
+
+            //Table name and data for table
+            let params = {
+                TableName: "sentimentData",
+                Item: {
+                    date: date,
+                    tweet_message: text
+                }
+            };
+            //Store data in DynamoDB and handle errors
+            // documentClient.put(params, (err, data) => {
+            //     if (err) {
+            //         console.error("Unable to add item", params.Item.tweet_message);
+            //         console.error("Error JSON:", JSON.stringify(err));
+            //     } else {
+            //         console.log("Tweet added to table:", params.Item);
+            //     }
+            // });
+        });
+    }).catch((err) => {
+        console.log(err);
+    });
 }
