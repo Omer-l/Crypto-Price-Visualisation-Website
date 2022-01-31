@@ -14,9 +14,9 @@ namespace Twitter_Sentiment_Scanner {
     AWS.config.update({
         region: "us-east-1",
         endpoint: "https://dynamodb.us-east-1.amazonaws.com",
-        accessKeyId: 'ASIA2ZOJXFRAKF4RLFOR',
-        secretAccessKey: 'Ajk5QFCFVjL5fhK/u3fOjV8td8K9yCSuy0RvUPMl',
-        sessionToken: 'FwoGZXIvYXdzEO7//////////wEaDMPb7UXiKatSYTWBbyLFAb1lPhtTLy+9eSgNw3zIKoMqidFSGMz1ZL3xwrZ+MysAsRzgAVd2+oY1YhH2WTSMSJh2HM+pX04XRzba3ORS05wWIUmxQ+74DYms1XBq9KbpcUdfzcGadIetfbzDjtLLkG3tDwRbj9nWl86uZm+bopHJuRZag0j+OCvqQQd3Tcu7zHsjL31JqbdsmErY+6evMBDLdwi+xn3hKydNwC4Ot0XddaSSPxqZieQlKD3q5Z1BtYyR4LrvM8wsiXzYNW+CxtEGACpaKLv92Y8GMi3ziAoRw3ymXwjqeqey7lw8EWHSuXXjLx1Iwzxg6RD/nHMCtYwUHL+MPNYngwQ='
+        accessKeyId: 'ASIA2ZOJXFRAMOWO2UP3',
+        secretAccessKey: 'VnPNzZc8HS9HZFCsbpghK43OdaQ92MomTzyXYfGz',
+        sessionToken: 'FwoGZXIvYXdzEPr//////////wEaDLqNmllYG4dOjLdRUyLFAZ1zOdL+55BB1maonCl6Tikrc+q25DKzqiKiuRxgrz+/gk7MgJ6O+lkBUC6v4VznR/ZMHx29EW761FELGTi28byg3cs5k6gMnTfe9Fgpear+BUql8p9t14HrF7UfgT2RDHLslKMuw2TEbM4JZN6naq3nShr1L6Q8Je6V5SjDDSA1MfFlUgALiMkzUcjiR86bP+YQ9YiPqoC9F5HzDeIHrxyGtvkXtbgwARoHFq24QbbXcwTj0gJNFGAnL0YBY5mxC9e3Q2/cKLfQ3I8GMi3IpOMfHLo+d7QFBPVwcSEhlpvFhuKRMsGKdTp324tWFYJIJ2o8QvcK5Ri0eKw='
     });
     let documentClient = new AWS.DynamoDB.DocumentClient(); //for pushing onto database table
 
@@ -44,10 +44,13 @@ function dateToMilliseconds(created_at) {
     let hour =  Number(timeSplit[0]);
     let minute =Number( timeSplit[1]);
     let second =Number( timeSplit[2]);
-    let date = new Date(year, month, day, hour, minute, second);
+    return new Date(year, month, day, hour, minute, second).getTime();
 }
 
-    twitterAPI.v2.search('bitcoin', {
+let currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
+for(let index = 0; index < currencies.length; index++) {
+    let currency = currencies[index];
+    twitterAPI.v2.search(currency + 'coin', {
         'tweet.fields': [
             'created_at',
         ],
@@ -58,38 +61,37 @@ function dateToMilliseconds(created_at) {
             'description',
         ],
         'max_results': [
-            '11',
+            '100',
         ]
     }).then((val) => {
         let tweets = JSON.parse(JSON.stringify(val.data['data'])); //holds tweets
         tweets.forEach((tweet) => {
-        // let text = tweet.text;
-        // let date = tweet.created_at;
-        // date = date.replaceAll("T", " ");
-        // date = date.substring(0, date.indexOf('.'));
-        //
-        //     console.log("NEW TWEET DATE: " + date);
-        console.log("NEW TWEET : " + JSON.stringify(tweet));
-
+            console.log("NEW TWEET : " + JSON.stringify(tweet));
+            let timeStamp = dateToMilliseconds(tweet.created_at);
+            let tweetId = tweet.id;
+            let text = tweet.text;
             //Table name and data for table
             let params = {
                 TableName: "sentimentData",
                 Item: {
-                    date: date,
-                    tweet_message: text
+                    date: tweet.created_at,
+                    tweet_id: tweetId,
+                    tweet_message: text,
+                    currency: currency
                 }
             };
-            //Store data in DynamoDB and handle errors
-            // documentClient.put(params, (err, data) => {
-            //     if (err) {
-            //         console.error("Unable to add item", params.Item.tweet_message);
-            //         console.error("Error JSON:", JSON.stringify(err));
-            //     } else {
-            //         console.log("Tweet added to table:", params.Item);
-            //     }
-            // });
+            // Store data in DynamoDB and handle errors
+            documentClient.put(params, (err, data) => {
+                if (err) {
+                    console.error("Unable to add item", params.Item.tweet_message);
+                    console.error("Error JSON:", JSON.stringify(err));
+                } else {
+                    console.log("Tweet added to table:", params.Item);
+                }
+            });
         });
     }).catch((err) => {
         console.log(err);
     });
+}
 }
