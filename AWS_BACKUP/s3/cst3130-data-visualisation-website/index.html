@@ -110,6 +110,10 @@
         console.log("WebSocket Error: " + JSON.stringify(error));
     }
 
+    function clearNotifications() {
+        document.getElementById("messages").innerHTML = "";
+    }
+
     //Send message to server
     function sendMessage(){
         //Get text from form
@@ -141,6 +145,8 @@
 
         //Log result
         console.log("Message sent: " + JSON.stringify(msgObject));
+
+        clearNotifications();
     }
 
     //Send request message to update graph to server
@@ -156,6 +162,7 @@
 
         //Log result
         console.log("Message sent: " + JSON.stringify(msgObject));
+        clearNotifications();
     }
 
 </script>
