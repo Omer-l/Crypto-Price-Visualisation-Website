@@ -41,7 +41,7 @@ module.exports.getSendMessagePromises = async (message, domainName, stage) => {
                     throw err;
                 }
             }
-            else {
+            else{
                 console.log("UNKNOWN ERROR: " + JSON.stringify(err));
                 throw err;
             }
