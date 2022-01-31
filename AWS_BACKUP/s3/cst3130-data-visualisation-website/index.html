@@ -20,9 +20,9 @@
 <h1>Messages from Server</h1>
 <p style="border-style: solid; width: 500px; border-width: 1px;" id="messages"></p>
 
-<button type="button" onclick="updatePieChart()">Refresh</button>
+<button type="button" onclick="updatePieChart()">Refresh Pie Chart</button>
 <div id="pieDiv"></div>
-<button type="button" onclick="updateNumericalGraph()">Refresh</button>
+<button type="button" onclick="updateNumericalGraph()">Refresh Graph</button>
 <div id="numericalGraphDiv"></div>
 <script>
     //Open connection
@@ -60,6 +60,7 @@
         } else if (message.includes("numerical")) {
             let plotlyData = JSON.parse(message);
             let lines = plotlyData.data;
+            console.log(JSON.stringify(lines) + "LENGTH: " + lines.length);
             Plotly.newPlot('numericalGraphDiv', lines);
         } else {
             document.getElementById("messages").innerHTML += ("Server message: " + message + "<br />");
