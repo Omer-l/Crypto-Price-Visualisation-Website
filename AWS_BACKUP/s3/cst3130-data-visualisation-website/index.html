@@ -28,13 +28,14 @@
         </button>
     </nav>
 </div>
-<h1>Messages from Server</h1>
 <p style="border-style: solid; width: 500px; border-width: 1px;" id="messages"></p>
-
-<button type="button" onclick="updatePieChart()">Refresh Pie Chart</button>
-<div id="pieDiv"></div>
+<h1>Numerical Data</h1>
 <button type="button" onclick="updateNumericalGraph()">Refresh Graph</button>
 <div id="numericalGraphDiv"></div>
+<h1>Sentiment Analysis</h1>
+<button type="button" onclick="updatePieChart()">Refresh Pie Chart</button>
+<div id="pieDiv"></div>
+<h1>Synthetic Data</h1>
 <script>
     //Open connection
     let connection = new WebSocket("wss://7dxr2k9a9b.execute-api.us-east-1.amazonaws.com/prod");
