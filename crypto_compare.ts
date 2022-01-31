@@ -66,18 +66,19 @@ namespace Put {
 
     var date = new Date(1605916800);
     var dt = date.getTime();
+    let currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
 
 //Class that wraps fixer.io web service
     export class Fixer {
-        //Base URL of fixer.io API ?fsym=BTC&tsym=USD&limit=1000
+        //Base URL of CryptoCompare
         baseURL: string = "https://min-api.cryptocompare.com/data/v2/histoday";
         accessKey = "000b9badd6690c6fa779bde8d4133afbdf0701b864691c454d3c349b88f3464d";
 
         //Returns a Promise that will get the exchange rates for the specified date
-        getExchangeRates(): Promise<object> {
+        getExchangeRates(currency): Promise<object> {
             //Build URL for API call
             let url: string = this.baseURL + "?";
-            url += "fsym=BTC&tsym=USD&limit=1900";
+            url += "fsym=" + currency + "&tsym=USD&limit=5";
             url += "&api_key=" + this.accessKey;
 
             //Output URL and return Promise
@@ -89,6 +90,8 @@ namespace Put {
 
 //Gets the historical data for a range of dates.
     async function getHistoricalData() {
+        for(let index = 0; index < currencies.length; index++) {
+            let currency = currencies[index];
         /* You should check that the start date plus the number of days is
         less than the current date*/
 
@@ -104,7 +107,7 @@ namespace Put {
         // //Work forward from start date
         // for (let i: number = 0; i < numDays; ++i) {
         //     //Add axios promise to array
-        promiseArray.push(fixerIo.getExchangeRates());
+        promiseArray.push(fixerIo.getExchangeRates(currency));
 
         //     //Increase the number of days
         //     date.add(1, 'days');
@@ -138,9 +141,9 @@ namespace Put {
                     AWS.config.update({
                         region: "us-east-1",
                         endpoint: "https://dynamodb.us-east-1.amazonaws.com",
-                        accessKeyId: 'ASIA2ZOJXFRAAUVTPTBS',
-                        secretAccessKey: '371USrO7izMH2prtOuXnNUc+Oa+PoyizlYdzkTV6',
-                        sessionToken: 'FwoGZXIvYXdzEEAaDOUSbZBecusfx8ca4CLFAbNFCbVpj83BjoGw5rstlDV28V9CouC7Pn6CO0sDzTZmRsx4X0qukdPDcBFZbMplctLxkgMgObwGuyXqLGFNwnV6p+nhZrTAhkQoVWPCXkO76mRSpTH1B3RXPwQ1bZCFtr947JSRH4eJEWymfMAIXo/18XPi/iSz7uAV19Xx8ju1FnmSz6BVwBbIjJqG2ntlHzRld0u1LVEjtypCYu1zIwVlu3FZg2CPchdtI8nNnn9XI31GKQ4rgEzegmHDgHCbxemr/Q0+KKTJ+44GMi3KWc7DZNUSWIh9ZYh3QtYIwjlZHQ/zKr/pe4Ro1U1k8wIlNbiFzy9YpgL21O4='
+                        accessKeyId: 'ASIA2ZOJXFRAMOWO2UP3',
+                        secretAccessKey: 'VnPNzZc8HS9HZFCsbpghK43OdaQ92MomTzyXYfGz',
+                        sessionToken: 'FwoGZXIvYXdzEPr//////////wEaDLqNmllYG4dOjLdRUyLFAZ1zOdL+55BB1maonCl6Tikrc+q25DKzqiKiuRxgrz+/gk7MgJ6O+lkBUC6v4VznR/ZMHx29EW761FELGTi28byg3cs5k6gMnTfe9Fgpear+BUql8p9t14HrF7UfgT2RDHLslKMuw2TEbM4JZN6naq3nShr1L6Q8Je6V5SjDDSA1MfFlUgALiMkzUcjiR86bP+YQ9YiPqoC9F5HzDeIHrxyGtvkXtbgwARoHFq24QbbXcwTj0gJNFGAnL0YBY5mxC9e3Q2/cKLfQ3I8GMi3IpOMfHLo+d7QFBPVwcSEhlpvFhuKRMsGKdTp324tWFYJIJ2o8QvcK5Ri0eKw='
                     });
 
 //Create date object to get date in UNIX time
@@ -148,7 +151,7 @@ namespace Put {
 
 //Create new DocumentClient
                     let documentClient = new AWS.DynamoDB.DocumentClient();
-                    let price: number = (crypto.open +  crypto.low + crypto.high) / 3; //takes the average price for the coin
+                    let price: number = (crypto.open + crypto.low + crypto.high) / 3; //takes the average price for the coin
                     let time = crypto.time;
 
                     //Table name and data for table
@@ -156,33 +159,34 @@ namespace Put {
                         TableName: "CryptoData",
                         Item: {
                             PriceTimeStamp: time,//Current time in milliseconds
-                            Currency: "BTC",
+                            Currency: currency,
                             Price: price
                         }
                     };
                     target.push(price);
 
                     //Store data in DynamoDB and handle errors
-                    // documentClient.put(params, (err, data) => {
-                    //     if (err) {
-                    //         console.error("Unable to add item", params.Item.Currency);
-                    //         console.error("Error JSON:", JSON.stringify(err));
-                    //     } else {
-                    //         console.log("Currency added to table:", params.Item);
-                    //     }
-                    // });
+                    documentClient.put(params, (err, data) => {
+                        if (err) {
+                            console.error("Unable to add item", params.Item.Currency);
+                            console.error("Error JSON:", JSON.stringify(err));
+                        } else {
+                            console.log("Currency added to table:", params.Item);
+                        }
+                    });
                 }
             });
-            sageMakerList.target = target;
-            fs.writeFile('synthetic_data_1_train.json', JSON.stringify(sageMakerList), function (err) {
-                if (err) {
-                    throw err;
-                }
-                console.log("JSON data is saved.");
-            });
+            // sageMakerList.target = target;
+            // fs.writeFile('synthetic_data_1_train.json', JSON.stringify(sageMakerList), function (err) {
+            //     if (err) {
+            //         throw err;
+            //     }
+            //     console.log("JSON data is saved.");
+            // });
         } catch (error) {
             console.log("Error: " + JSON.stringify(error));
         }
+    }
     }
 
 //Call function to get historical data

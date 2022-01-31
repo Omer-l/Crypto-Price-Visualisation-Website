@@ -28,31 +28,81 @@ function readCryptoData() {
 exports.handler = async (event) => {
     //Holds the main line, predictions (Lower Quartile, mean, Upper Quartile)
     let lines = [];
-    let yValues = []; //holds the prices
-    //basic X values for plot
+    //basic X values for time plot
     let xValues = []; //holds the time
+    //Y Values for prices
+    let yValuesSOL = []; //holds SOL prices
+    let yValuesATOM = []; //holds ATOM prices
+    let yValuesLUNA = []; //holds LUNA prices
+    let yValuesDOT = []; //holds DOT prices
+    let yValuesLINK = []; //holds LINK prices
     //promise awaiting
     const cryptos  = await readCryptoData();
+    let numberOfCryptoTypes = 5;
+    let count = 0; //there is n / numberOfCryptos of time stamps, to avoid duplication
+    let totalScannedCryptos = cryptos.Items.length;
+    let numberOfTimeStamps = Math.ceil(totalScannedCryptos / numberOfCryptoTypes);
     cryptos.Items.forEach(function(crypto) {
-        yValues.push(crypto.Price);
-        xValues.push(crypto.PriceTimeStamp);
+        if(count < numberOfTimeStamps) {
+            xValues.push(crypto.PriceTimeStamp);
+            count++;
+        }
+        let currency = crypto.Currency;
+        if(currency.includes("SOL"))
+            yValuesSOL.push(crypto.Price);
+        else if(currency.includes("ATOM"))
+            yValuesATOM.push(crypto.Price);
+        else if(currency.includes("LUNA"))
+            yValuesLUNA.push(crypto.Price);
+        else if(currency.includes("DOT"))
+            yValuesDOT.push(crypto.Price);
+        else if(currency.includes("LINK"))
+            yValuesLINK.push(crypto.Price);
     });
 
-    var yRealLine = {
+    //Lines
+    var solLine = {
         x: xValues,
-        y: yValues,
+        y: yValuesSOL,
         mode: 'lines',
-        name: 'Real Data'
+        name: 'SOL'
+    };
+    var atomLine = {
+        x: xValues,
+        y: yValuesATOM,
+        mode: 'lines',
+        name: 'ATOM'
+    };
+    var lunaLine = {
+        x: xValues,
+        y: yValuesLUNA,
+        mode: 'lines',
+        name: 'LUNA'
+    };
+    var dotLine = {
+        x: xValues,
+        y: yValuesDOT,
+        mode: 'lines',
+        name: 'DOT'
+    };
+    var linkLine = {
+        x: xValues,
+        y: yValuesLINK,
+        mode: 'lines',
+        name: 'LINK'
     };
 
-    lines.push(yRealLine);
+    lines.push(solLine);
+    lines.push(atomLine);
+    lines.push(lunaLine);
+    lines.push(dotLine);
+    lines.push(linkLine);
 
     let msg = {
         data : lines,
         type : 'numerical'
     };
     let msgString = JSON.stringify(msg);
-    // console.log("HELLOW: " + msgString);
     //Get promises to send messages to connected clients
     let sendMsgPromises = await ws.getSendMessagePromises(msgString, domainName, stage);
     //Execute promises
