@@ -32,7 +32,7 @@ namespace Twitter_Sentiment_Scanner {
         tweets: Array<Tweet>,
     }
 function dateToMilliseconds(created_at) {
-    let created_at = "2022-01-31T02:35:18.000Z";
+        // created_at = "2022-01-31T02:35:18.000Z"; //for testing
     created_at = created_at.replaceAll("T", " ");
     created_at = created_at.replaceAll("Z", "");
     let splitT = created_at.split(" ");

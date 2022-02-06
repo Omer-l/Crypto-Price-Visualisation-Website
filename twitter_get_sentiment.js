@@ -19,7 +19,7 @@ var Twitter_Sentiment_Scanner;
     });
     var documentClient = new AWS.DynamoDB.DocumentClient(); //for pushing onto database table
     function dateToMilliseconds(created_at) {
-        var created_at = "2022-01-31T02:35:18.000Z";
+        // created_at = "2022-01-31T02:35:18.000Z"; //for testing
         created_at = created_at.replaceAll("T", " ");
         created_at = created_at.replaceAll("Z", "");
         var splitT = created_at.split(" ");
