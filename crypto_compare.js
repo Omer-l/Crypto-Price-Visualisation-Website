@@ -34,8 +34,11 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+// import { apiKeys } from './passwordsHolder';
 var Put;
 (function (Put) {
+    //Holds access keys for APIs
+    var pH = require('./passwordsHolder');
     //To coneect to Amazon Web Services DynamoDB database
     var AWS = require("aws-sdk");
     //Used to writing to data json file
@@ -61,7 +64,7 @@ var Put;
         function cryptoCompare() {
             //Base URL of CryptoCompare
             this.baseURL = "https://min-api.cryptocompare.com/data/v2/histoday";
-            this.accessKey = "000b9badd6690c6fa779bde8d4133afbdf0701b864691c454d3c349b88f3464d";
+            this.accessKey = pH.apiKeys.cryptoCompareAccessKey;
         }
         //Returns a Promise that will get the exchange rates for the specified date
         cryptoCompare.prototype.getExchangeRates = function (currency) {
@@ -121,9 +124,9 @@ var Put;
                                                 AWS.config.update({
                                                     region: "us-east-1",
                                                     endpoint: "https://dynamodb.us-east-1.amazonaws.com",
-                                                    accessKeyId: 'ASIA2ZOJXFRAMOWO2UP3',
-                                                    secretAccessKey: 'VnPNzZc8HS9HZFCsbpghK43OdaQ92MomTzyXYfGz',
-                                                    sessionToken: 'FwoGZXIvYXdzEPr//////////wEaDLqNmllYG4dOjLdRUyLFAZ1zOdL+55BB1maonCl6Tikrc+q25DKzqiKiuRxgrz+/gk7MgJ6O+lkBUC6v4VznR/ZMHx29EW761FELGTi28byg3cs5k6gMnTfe9Fgpear+BUql8p9t14HrF7UfgT2RDHLslKMuw2TEbM4JZN6naq3nShr1L6Q8Je6V5SjDDSA1MfFlUgALiMkzUcjiR86bP+YQ9YiPqoC9F5HzDeIHrxyGtvkXtbgwARoHFq24QbbXcwTj0gJNFGAnL0YBY5mxC9e3Q2/cKLfQ3I8GMi3IpOMfHLo+d7QFBPVwcSEhlpvFhuKRMsGKdTp324tWFYJIJ2o8QvcK5Ri0eKw='
+                                                    accessKeyId: pH.apiKeys.awsAccessKeyId,
+                                                    secretAccessKey: pH.apiKeys.awsSecretAccessKey,
+                                                    sessionToken: pH.apiKeys.awsSessionToken
                                                 });
                                                 //Create date object to get date in UNIX time
                                                 var date_1 = new Date();
