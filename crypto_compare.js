@@ -56,9 +56,8 @@ var Put;
         }
         return SageMakerData;
     }());
-    var date = new Date(1605916800);
-    var dt = date.getTime();
     var currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
+    var numberOfPricesToGET = 20;
     //Class that wraps cryptoCompare web service
     var cryptoCompare = /** @class */ (function () {
         function cryptoCompare() {
@@ -70,7 +69,7 @@ var Put;
         cryptoCompare.prototype.getExchangeRates = function (currency) {
             //Build URL for API call
             var url = this.baseURL + "?";
-            url += "fsym=" + currency + "&tsym=USD&limit=5";
+            url += "fsym=" + currency + "&tsym=USD&limit=" + numberOfPricesToGET;
             url += "&api_key=" + this.accessKey;
             //Output URL and return Promise
             console.log("Building cryptoCompare Promise with URL: " + url);
@@ -79,15 +78,20 @@ var Put;
         return cryptoCompare;
     }());
     Put.cryptoCompare = cryptoCompare;
+    //    assigns seconds and date
+    function convertSecondsToDateAndTime(secondsSinceEpoch) {
+        var date = new Date(secondsSinceEpoch * 1000).toISOString().split('T');
+        return date[0] + " " + date[1].split('.')[0];
+    }
     //Gets the historical data for a range of dates.
     function getHistoricalData() {
         return __awaiter(this, void 0, void 0, function () {
-            var _loop_1, sageMakerList, target, index;
+            var _loop_1, index;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _loop_1 = function (index) {
-                            var currency, fixerIo, promiseArray, start, resultArray, data_1, cryptoData, error_1;
+                            var currency, fixerIo, promiseArray, sageMakerTrain, sageMakerEndpoint, trainTarget_1, endpointTarget_1, trainTargetIndex_1, trainLimit_1, resultArray, data_1, cryptoData, endpointIndex, secondsSinceEpochTrain, secondsSinceEpochEndpoint, trainStart, endpointStart, error_1;
                             return __generator(this, function (_b) {
                                 switch (_b.label) {
                                     case 0:
@@ -101,10 +105,12 @@ var Put;
                                         _b.label = 1;
                                     case 1:
                                         _b.trys.push([1, 3, , 4]);
-                                        start = "1970-01-11 16:36:51";
-                                        sageMakerList = new SageMakerData();
-                                        sageMakerList.start = start;
-                                        target = [];
+                                        sageMakerTrain = new SageMakerData();
+                                        sageMakerEndpoint = new SageMakerData();
+                                        trainTarget_1 = [];
+                                        endpointTarget_1 = [];
+                                        trainTargetIndex_1 = 0;
+                                        trainLimit_1 = numberOfPricesToGET * 0.8;
                                         return [4 /*yield*/, Promise.all(promiseArray)];
                                     case 2:
                                         resultArray = _b.sent();
@@ -115,6 +121,13 @@ var Put;
                                         if (data_1.Response != "Success")
                                             console.log("UNSUCCESSFUL REQUEST" + JSON.stringify(data_1.Response));
                                         cryptoData = data_1.Data.Data;
+                                        endpointIndex = trainLimit_1;
+                                        secondsSinceEpochTrain = cryptoData[trainTargetIndex_1].time;
+                                        secondsSinceEpochEndpoint = cryptoData[endpointIndex].time;
+                                        trainStart = convertSecondsToDateAndTime(secondsSinceEpochTrain);
+                                        endpointStart = convertSecondsToDateAndTime(secondsSinceEpochEndpoint);
+                                        sageMakerTrain.start = trainStart;
+                                        sageMakerEndpoint.start = endpointStart;
                                         cryptoData.forEach(function (crypto, index) {
                                             console.log(crypto);
                                             if (data_1 == undefined) {
@@ -129,7 +142,7 @@ var Put;
                                                     sessionToken: pH.apiKeys.awsSessionToken
                                                 });
                                                 //Create date object to get date in UNIX time
-                                                var date_1 = new Date();
+                                                var date = new Date();
                                                 //Create new DocumentClient
                                                 var documentClient = new AWS.DynamoDB.DocumentClient();
                                                 var price = (crypto.open + crypto.low + crypto.high) / 3; //takes the average price for the coin
@@ -143,7 +156,10 @@ var Put;
                                                         Price: price
                                                     }
                                                 };
-                                                target.push(price);
+                                                if (trainTargetIndex_1++ < trainLimit_1)
+                                                    trainTarget_1.push(price);
+                                                else
+                                                    endpointTarget_1.push(price);
                                                 //Store data in DynamoDB and handle errors
                                                 // documentClient.put(params, (err, data) => {
                                                 //     if (err) {
@@ -154,6 +170,22 @@ var Put;
                                                 //     }
                                                 // });
                                             }
+                                        });
+                                        sageMakerTrain.target = trainTarget_1;
+                                        sageMakerEndpoint.target = endpointTarget_1;
+                                        //Writes training data
+                                        fs.writeFile('./AWS_BACKUP/s3/cst3130-machine-learning-data/numerical_data_' + currency + '_train.json', JSON.stringify(sageMakerTrain), function (err) {
+                                            if (err) {
+                                                throw err;
+                                            }
+                                            console.log("JSON data is saved.");
+                                        });
+                                        //Writes endpoint data
+                                        fs.writeFile('./AWS_BACKUP/s3/cst3130-machine-learning-data/numerical_data_' + currency + '.json', JSON.stringify(sageMakerEndpoint), function (err) {
+                                            if (err) {
+                                                throw err;
+                                            }
+                                            console.log("JSON data is saved.");
                                         });
                                         return [3 /*break*/, 4];
                                     case 3:

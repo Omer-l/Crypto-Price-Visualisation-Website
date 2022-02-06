@@ -61,9 +61,8 @@ namespace Put {
         target: Array<number>;
     }
 
-    var date = new Date(1605916800);
-    var dt = date.getTime();
-    let currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
+    const currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
+    const numberOfPricesToGET = 20;
 
 //Class that wraps cryptoCompare web service
     export class cryptoCompare {
@@ -75,13 +74,19 @@ namespace Put {
         getExchangeRates(currency): Promise<object> {
             //Build URL for API call
             let url: string = this.baseURL + "?";
-            url += "fsym=" + currency + "&tsym=USD&limit=5";
+            url += "fsym=" + currency + "&tsym=USD&limit=" + numberOfPricesToGET;
             url += "&api_key=" + this.accessKey;
 
             //Output URL and return Promise
             console.log("Building cryptoCompare Promise with URL: " + url);
             return axios.get(url);
         }
+    }
+
+//    assigns seconds and date
+    function convertSecondsToDateAndTime(secondsSinceEpoch) {
+        let date = new Date(secondsSinceEpoch*1000).toISOString().split('T');
+        return date[0] + " " + date[1].split('.')[0];
     }
 
 
@@ -112,10 +117,12 @@ namespace Put {
 
             //Wait for all promises to execute
             try {
-                let start = "1970-01-11 16:36:51";
-                var sageMakerList = new SageMakerData();
-                sageMakerList.start = start;
-                var target: Array<number> = [];
+                let sageMakerTrain = new SageMakerData();
+                let sageMakerEndpoint = new SageMakerData();
+                let trainTarget: Array<number> = [];
+                let endpointTarget: Array<number> = [];
+                let trainTargetIndex = 0;
+                let trainLimit = numberOfPricesToGET * 0.8;
 
                 let resultArray: Array<object> = await Promise.all(promiseArray);
                 // resultArray = promiseArray['data'];
@@ -129,6 +136,14 @@ namespace Put {
                     console.log("UNSUCCESSFUL REQUEST" + JSON.stringify(data.Response));
 
                 let cryptoData = data.Data.Data;
+                let endpointIndex = trainLimit;
+                let secondsSinceEpochTrain = cryptoData[trainTargetIndex].time;
+                let secondsSinceEpochEndpoint = cryptoData[endpointIndex].time;
+                let trainStart = convertSecondsToDateAndTime(secondsSinceEpochTrain);
+                let endpointStart = convertSecondsToDateAndTime(secondsSinceEpochEndpoint);
+                sageMakerTrain.start = trainStart;
+                sageMakerEndpoint.start = endpointStart;
+
                 cryptoData.forEach((crypto, index) => {
                     console.log(crypto);
 
@@ -160,7 +175,10 @@ namespace Put {
                                 Price: price
                             }
                         };
-                        target.push(price);
+                        if(trainTargetIndex++ < trainLimit)
+                            trainTarget.push(price);
+                        else
+                            endpointTarget.push(price);
 
                         //Store data in DynamoDB and handle errors
                         // documentClient.put(params, (err, data) => {
@@ -173,13 +191,24 @@ namespace Put {
                         // });
                     }
                 });
-                // sageMakerList.target = target;
-                // fs.writeFile('synthetic_data_1_train.json', JSON.stringify(sageMakerList), function (err) {
-                //     if (err) {
-                //         throw err;
-                //     }
-                //     console.log("JSON data is saved.");
-                // });
+                sageMakerTrain.target = trainTarget;
+                sageMakerEndpoint.target = endpointTarget;
+
+                //Writes training data
+                fs.writeFile('./AWS_BACKUP/s3/cst3130-machine-learning-data/numerical_data_' + currency + '_train.json', JSON.stringify(sageMakerTrain), function (err) {
+                    if (err) {
+                        throw err;
+                    }
+                    console.log("JSON data is saved.");
+                });
+
+                //Writes endpoint data
+                fs.writeFile('./AWS_BACKUP/s3/cst3130-machine-learning-data/numerical_data_' + currency + '.json', JSON.stringify(sageMakerEndpoint), function (err) {
+                    if (err) {
+                        throw err;
+                    }
+                    console.log("JSON data is saved.");
+                });
             } catch (error) {
                 console.log("Error: " + JSON.stringify(error));
             }
