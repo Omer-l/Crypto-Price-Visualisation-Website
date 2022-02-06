@@ -17,14 +17,7 @@ namespace Put {
 //Copy variables in file into environment variables
     dotenv.config();
 
-//The structure of a Rates object
-    interface FixerRates {
-        USD: number,
-        JPY: number,
-        EUR: number
-    }
-
-    interface Data {
+    interface Crypto {
         time: number,
         high: number,
         low: number,
@@ -37,8 +30,8 @@ namespace Put {
 
     }
 
-//The data structure returned in the message body by fixer.io
-    interface FixerObject {
+//The data structure returned in the message body by cryptoCompare
+    interface CryptoCompareObject {
         Response: string,
         Message: string,
         HasWarning: boolean,
@@ -48,12 +41,12 @@ namespace Put {
             Aggregated: boolean,
             TimeFrom: number,
             TimeTo: number,
-            Data: Array<Data>,
+            Data: Array<Crypto>,
         }
     }
 
-//The data structure of a fixer.io error
-    interface FixerError {
+//The data structure of a cryptoCompare error
+    interface CryptoCompareError {
         code: number,
         type: string,
         info: string,
@@ -68,8 +61,8 @@ namespace Put {
     var dt = date.getTime();
     let currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
 
-//Class that wraps fixer.io web service
-    export class Fixer {
+//Class that wraps cryptoCompare web service
+    export class cryptoCompare {
         //Base URL of CryptoCompare
         baseURL: string = "https://min-api.cryptocompare.com/data/v2/histoday";
         accessKey = "000b9badd6690c6fa779bde8d4133afbdf0701b864691c454d3c349b88f3464d";
@@ -82,7 +75,7 @@ namespace Put {
             url += "&api_key=" + this.accessKey;
 
             //Output URL and return Promise
-            console.log("Building fixer.io Promise with URL: " + url);
+            console.log("Building cryptoCompare Promise with URL: " + url);
             return axios.get(url);
         }
     }
@@ -98,8 +91,8 @@ namespace Put {
             //Create moment date, which will enable us to add days easily.
             // let start = moment(startDate);
 
-            //Create instance of Fixer.io class
-            let fixerIo: Fixer = new Fixer();
+            //Create instance of cryptoCompare class
+            let fixerIo: cryptoCompare = new cryptoCompare();
 
             //Array to hold promises
             let promiseArray: Array<Promise<object>> = [];
@@ -125,7 +118,7 @@ namespace Put {
                 console.log(resultArray[0]['data']);
                 //Output the data
                 //data contains the body of the web service response
-                let data: FixerObject = resultArray[0]['data'];
+                let data: CryptoCompareObject = resultArray[0]['data'];
 
                 //Check that API call succeeded.
                 if (data.Response != "Success")
@@ -166,14 +159,14 @@ namespace Put {
                         target.push(price);
 
                         //Store data in DynamoDB and handle errors
-                        documentClient.put(params, (err, data) => {
-                            if (err) {
-                                console.error("Unable to add item", params.Item.Currency);
-                                console.error("Error JSON:", JSON.stringify(err));
-                            } else {
-                                console.log("Currency added to table:", params.Item);
-                            }
-                        });
+                        // documentClient.put(params, (err, data) => {
+                        //     if (err) {
+                        //         console.error("Unable to add item", params.Item.Currency);
+                        //         console.error("Error JSON:", JSON.stringify(err));
+                        //     } else {
+                        //         console.log("Currency added to table:", params.Item);
+                        //     }
+                        // });
                     }
                 });
                 // sageMakerList.target = target;

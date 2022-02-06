@@ -56,26 +56,26 @@ var Put;
     var date = new Date(1605916800);
     var dt = date.getTime();
     var currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    //Class that wraps fixer.io web service
-    var Fixer = /** @class */ (function () {
-        function Fixer() {
+    //Class that wraps cryptoCompare web service
+    var cryptoCompare = /** @class */ (function () {
+        function cryptoCompare() {
             //Base URL of CryptoCompare
             this.baseURL = "https://min-api.cryptocompare.com/data/v2/histoday";
             this.accessKey = "000b9badd6690c6fa779bde8d4133afbdf0701b864691c454d3c349b88f3464d";
         }
         //Returns a Promise that will get the exchange rates for the specified date
-        Fixer.prototype.getExchangeRates = function (currency) {
+        cryptoCompare.prototype.getExchangeRates = function (currency) {
             //Build URL for API call
             var url = this.baseURL + "?";
             url += "fsym=" + currency + "&tsym=USD&limit=5";
             url += "&api_key=" + this.accessKey;
             //Output URL and return Promise
-            console.log("Building fixer.io Promise with URL: " + url);
+            console.log("Building cryptoCompare Promise with URL: " + url);
             return axios.get(url);
         };
-        return Fixer;
+        return cryptoCompare;
     }());
-    Put.Fixer = Fixer;
+    Put.cryptoCompare = cryptoCompare;
     //Gets the historical data for a range of dates.
     function getHistoricalData() {
         return __awaiter(this, void 0, void 0, function () {
@@ -89,7 +89,7 @@ var Put;
                                 switch (_b.label) {
                                     case 0:
                                         currency = currencies[index];
-                                        fixerIo = new Fixer();
+                                        fixerIo = new cryptoCompare();
                                         promiseArray = [];
                                         // //Work forward from start date
                                         // for (let i: number = 0; i < numDays; ++i) {
@@ -132,7 +132,7 @@ var Put;
                                                 var price = (crypto.open + crypto.low + crypto.high) / 3; //takes the average price for the coin
                                                 var time = crypto.time;
                                                 //Table name and data for table
-                                                var params_1 = {
+                                                var params = {
                                                     TableName: "CryptoData",
                                                     Item: {
                                                         PriceTimeStamp: time,
@@ -142,15 +142,14 @@ var Put;
                                                 };
                                                 target.push(price);
                                                 //Store data in DynamoDB and handle errors
-                                                documentClient.put(params_1, function (err, data) {
-                                                    if (err) {
-                                                        console.error("Unable to add item", params_1.Item.Currency);
-                                                        console.error("Error JSON:", JSON.stringify(err));
-                                                    }
-                                                    else {
-                                                        console.log("Currency added to table:", params_1.Item);
-                                                    }
-                                                });
+                                                // documentClient.put(params, (err, data) => {
+                                                //     if (err) {
+                                                //         console.error("Unable to add item", params.Item.Currency);
+                                                //         console.error("Error JSON:", JSON.stringify(err));
+                                                //     } else {
+                                                //         console.log("Currency added to table:", params.Item);
+                                                //     }
+                                                // });
                                             }
                                         });
                                         return [3 /*break*/, 4];
