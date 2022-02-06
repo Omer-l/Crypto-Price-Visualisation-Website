@@ -44,9 +44,14 @@ exports.handler = async (event) => {
     let numberOfTimeStamps = Math.ceil(totalScannedCryptos / numberOfCryptoTypes);
     cryptos.Items.forEach(function(crypto) {
         if(count < numberOfTimeStamps) {
-            xValues.push(crypto.PriceTimeStamp);
+            //converts the seconds to date from epoch time
+            let dateInSeconds = crypto.PriceTimeStamp;
+            let date = new Date(dateInSeconds*1000);
+            let dateString = date.toISOString().split('T')[0];
+            xValues.push(dateString);
             count++;
         }
+        //assigns currency values for the y axis
         let currency = crypto.Currency;
         if(currency.includes("SOL"))
             yValuesSOL.push(crypto.Price);
@@ -103,6 +108,7 @@ exports.handler = async (event) => {
         type : 'numerical'
     };
     let msgString = JSON.stringify(msg);
+    // console.log("HELLOW: " + msgString);
     //Get promises to send messages to connected clients
     let sendMsgPromises = await ws.getSendMessagePromises(msgString, domainName, stage);
     //Execute promises
