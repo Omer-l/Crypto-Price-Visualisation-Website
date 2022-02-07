@@ -15,33 +15,6 @@ const ddb = new AWS.DynamoDB.DocumentClient({ region: 'us-east-1' });
 //Create instance of Comprehend
 let comprehend = new AWS.Comprehend();
 
-// Function readTwitterData
-// Reads 10 CryptoDatas from the DynamoDb table CryptoData
-// Returns promise
-function readTwitterData() {
-    const params = {
-        TableName: 'sentimentData'
-    }
-    return ddb.scan(params).promise();
-};
-
-//Function that will be called
-async function getTweets() {
-    let tweets = [];
-    try {
-        //promise awaiting
-        const Item = await readTwitterData();
-        Item.Items.forEach(function(item) {
-            let tweet = item;
-            tweets.push(tweet);
-        });
-    }
-    catch (err) {
-        console.log("ERROR: " + JSON.stringify(err));
-    }
-    return tweets;
-}
-
 exports.handler = async (event) => {
     for (let record of event.Records) {
 
