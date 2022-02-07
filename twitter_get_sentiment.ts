@@ -63,7 +63,7 @@ for(let index = 0; index < currencies.length; index++) {
             'description',
         ],
         'max_results': [
-            '100',
+            '10',
         ]
     }).then((val) => {
         let tweets = JSON.parse(JSON.stringify(val.data['data'])); //holds tweets
@@ -83,7 +83,14 @@ for(let index = 0; index < currencies.length; index++) {
                 }
             };
             // Store data in DynamoDB and handle errors
-            // documentClient.put(params,
+            documentClient.put(params, (err, data) => {
+                if (err) {
+                    console.error("Unable to add item", params.Item.tweet_message);
+                    console.error("Error JSON:", JSON.stringify(err));
+                } else {
+                    console.log("Tweet added to table:", params.Item);
+                }
+            });
         });
     }).catch((err) => {
         console.log(err);

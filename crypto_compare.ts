@@ -3,7 +3,7 @@
 namespace Put {
     //Holds access keys for APIs
     let pH = require('./passwordsHolder');
-    //To coneect to Amazon Web Services DynamoDB database
+    //To connect to Amazon Web Services DynamoDB database
     let AWS = require("aws-sdk");
 
 //Used to writing to data json file
@@ -61,8 +61,15 @@ namespace Put {
         target: Array<number>;
     }
 
+    interface DynamoDBItem {
+        PriceTimeStamp: number,//Current time in milliseconds
+        Currency: string,
+        Price: number
+    }
+
     const currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    const numberOfPricesToGET = 20;
+    const numberOfPricesToGET = 1;
+    let dynamoDBBatch: Array<DynamoDBItem> = [];
 
 //Class that wraps cryptoCompare web service
     export class cryptoCompare {
@@ -101,7 +108,7 @@ namespace Put {
             // let start = moment(startDate);
 
             //Create instance of cryptoCompare class
-            let fixerIo: cryptoCompare = new cryptoCompare();
+            let cryptoCompare1: cryptoCompare = new cryptoCompare();
 
             //Array to hold promises
             let promiseArray: Array<Promise<object>> = [];
@@ -109,7 +116,7 @@ namespace Put {
             // //Work forward from start date
             // for (let i: number = 0; i < numDays; ++i) {
             //     //Add axios promise to array
-            promiseArray.push(fixerIo.getExchangeRates(currency));
+            promiseArray.push(cryptoCompare1.getExchangeRates(currency));
 
             //     //Increase the number of days
             //     date.add(1, 'days');
@@ -122,8 +129,7 @@ namespace Put {
                 let trainTarget: Array<number> = [];
                 let endpointTarget: Array<number> = [];
                 let trainTargetIndex = 0;
-                let trainLimit = numberOfPricesToGET * 0.8;
-
+                let trainLimit = Math.ceil(numberOfPricesToGET * 0.6);
                 let resultArray: Array<object> = await Promise.all(promiseArray);
                 // resultArray = promiseArray['data'];
                 console.log(resultArray[0]['data']);
@@ -150,52 +156,33 @@ namespace Put {
                     if (data == undefined) {
                         console.log("Error: undefined" + JSON.stringify(data));
                     } else {
-                        AWS.config.update({
-                            region: "us-east-1",
-                            endpoint: "https://dynamodb.us-east-1.amazonaws.com",
-                            accessKeyId: pH.apiKeys.awsAccessKeyId,
-                            secretAccessKey: pH.apiKeys.awsSecretAccessKey,
-                            sessionToken: pH.apiKeys.awsSessionToken
-                        });
 
-//Create date object to get date in UNIX time
+//Create date object to get date in UNIX priceTimeStamp
                         let date: Date = new Date();
 
-//Create new DocumentClient
-                        let documentClient = new AWS.DynamoDB.DocumentClient();
                         let price: number = (crypto.open + crypto.low + crypto.high) / 3; //takes the average price for the coin
-                        let time = crypto.time;
-
-                        //Table name and data for table
-                        let params = {
-                            TableName: "CryptoData",
-                            Item: {
-                                PriceTimeStamp: time,//Current time in milliseconds
-                                Currency: currency,
-                                Price: price
-                            }
+                        let priceTimeStamp = crypto.time;
+                        let dynamoDBItem = {
+                            PriceTimeStamp : priceTimeStamp,
+                            Price : price,
+                            Currency : currency
                         };
+
+                        dynamoDBBatch.push(dynamoDBItem);
+
                         if(trainTargetIndex++ < trainLimit)
                             trainTarget.push(price);
                         else
                             endpointTarget.push(price);
-
-                        //Store data in DynamoDB and handle errors
-                        // documentClient.put(params, (err, data) => {
-                        //     if (err) {
-                        //         console.error("Unable to add item", params.Item.Currency);
-                        //         console.error("Error JSON:", JSON.stringify(err));
-                        //     } else {
-                        //         console.log("Currency added to table:", params.Item);
-                        //     }
-                        // });
                     }
                 });
+
+                //Write to JSON files
                 sageMakerTrain.target = trainTarget;
                 sageMakerEndpoint.target = endpointTarget;
 
                 //Writes training data
-                fs.writeFile('./AWS_BACKUP/s3/cst3130-machine-learning-data/numerical_data_' + currency + '_train.json', JSON.stringify(sageMakerTrain), function (err) {
+                fs.writeFile('./AWS_BACKUP/s3/cst3130-machine-learning-data/numerical_data_' + currency + '.json', JSON.stringify(sageMakerTrain), function (err) {
                     if (err) {
                         throw err;
                     }
@@ -203,15 +190,78 @@ namespace Put {
                 });
 
                 //Writes endpoint data
-                fs.writeFile('./AWS_BACKUP/s3/cst3130-machine-learning-data/numerical_data_' + currency + '.json', JSON.stringify(sageMakerEndpoint), function (err) {
+                fs.writeFile('./AWS_BACKUP/s3/cst3130-machine-learning-data/numerical_data_' + currency + '_train.json', JSON.stringify(sageMakerEndpoint), function (err) {
                     if (err) {
                         throw err;
                     }
                     console.log("JSON data is saved.");
                 });
+
             } catch (error) {
                 console.log("Error: " + JSON.stringify(error));
             }
+        }
+
+        /* Write to DynamoDB table */
+
+        AWS.config.update({
+            region: "us-east-1",
+            endpoint: "https://dynamodb.us-east-1.amazonaws.com",
+            accessKeyId: pH.apiKeys.awsAccessKeyId,
+            secretAccessKey: pH.apiKeys.awsSecretAccessKey,
+            sessionToken: pH.apiKeys.awsSessionToken
+        });
+        //Create new DocumentClient
+        let dynamoDB = new AWS.DynamoDB({maxRetries: 13, retryDelayOptions: {base: 200}});
+        // let documentClient = AWS.DynamoDB.DocumentClient();
+        let batchNumber = 0;
+        let rowNumber = 25 * batchNumber;
+        for(batchNumber = 0; batchNumber < dynamoDBBatch.length && dynamoDBBatch[rowNumber] != undefined; batchNumber++) {
+            let batch = [];
+            for (rowNumber = 25 * batchNumber; rowNumber < ( (batchNumber + 1) * 25) && dynamoDBBatch[rowNumber] != undefined; rowNumber++) {
+                let row = dynamoDBBatch[rowNumber];
+                let item = {
+                    PutRequest: {
+                        Item : {
+                            PriceTimeStamp: {N: (row.PriceTimeStamp + "")},
+                            Currency: {S: row.Currency},
+                            Price: {N: (row.Price + "")},
+                        }
+                    }
+                }
+                batch.push(item);
+            }
+            //Table name and data for table
+            // let params = {
+            //     TableName: "CryptoData",
+            //     Item: {
+            //     }
+            // };
+            var params = {
+                RequestItems: {
+                    "CryptoData": batch
+                }
+            };
+
+
+                //Store data in DynamoDB and handle errors
+            dynamoDB.batchWriteItem(params, function(err, data) {
+                if (err) {
+                    console.log("Error", err);
+                } else {
+                    console.log("Success", data);
+                }
+            });
+                //Store data in DynamoDB and handle errors
+                // documentClient.put(params, (err, data) => {
+                //     if (err) {
+                //         console.error("Unable to add item", params.Item.Currency);
+                //         console.error("Error JSON:", JSON.stringify(err));
+                //     } else {
+                //         console.log("Currency added to table:", params.Item);
+                //     }
+                // });
+
         }
     }
 

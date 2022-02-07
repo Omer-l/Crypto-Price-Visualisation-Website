@@ -28,12 +28,10 @@
         </button>
     </nav>
 </div>
-<p style="border-style: solid; width: 500px; border-width: 1px;" id="messages"></p>
+<p style="border-style: solid; width: 500px; border-width: 1px; max-height: 300px; overflow-y: auto" id="messages"></p>
 <h1>Numerical Data</h1>
-<button type="button" class="btn btn-secondary btn-lg btn-block" onclick="updateNumericalGraph()">Refresh Graph</button>
 <div id="numericalGraphDiv"></div>
 <h1>Sentiment Analysis</h1>
-<button type="button" class="btn btn-secondary btn-lg btn-block" onclick="updatePieChart()">Refresh Pie Chart(s)</button>
 <!--<div id="pieDiv"></div>-->
 <div class="container">
     <div class="row">
@@ -64,15 +62,15 @@
     //Log connected response
     connection.onopen = function(event){
         console.log("Connected: " + JSON.stringify(event));
-        // updatePieChart();
-        // updateNumericalGraph();
+        updatePieChart();
+        updateNumericalGraph();
     };
 
     //Output messages from the server
     connection.onmessage = function(msg){
         let message = msg.data;
-
-        if(message.includes("pie")) {
+        let messageLowerCase = message.toLowerCase();
+        if(messageLowerCase.includes("pie")) {
             let plotlyData = JSON.parse(message);
             let valuesPie1 = plotlyData.data[0].values;
             console.log(valuesPie1);
@@ -124,14 +122,21 @@
             Plotly.newPlot('pieDiv3', dataPie3,layout);
             Plotly.newPlot('pieDiv4', dataPie4,layout);
             Plotly.newPlot('pieDiv5', dataPie5,layout);
-        } else if (message.includes("numerical")) {
+        } else if (messageLowerCase.includes("numerical")) {
             let plotlyData = JSON.parse(message);
             let lines = plotlyData.data;
             console.log(JSON.stringify(lines) + "LENGTH: " + lines.length);
             Plotly.newPlot('numericalGraphDiv', lines);
-        } else {
+        } else if(messageLowerCase.includes("tweet")) { //request update on pie charts
+            updatePieChart();
             document.getElementById("messages").innerHTML += ("Server message: " + message + "<br />");
             console.log("Message received.");
+        } else if(messageLowerCase.includes("currency")) { //request update on numerical graph
+            updateNumericalGraph();
+            document.getElementById("messages").innerHTML += ("Server message: " + message + "<br />");
+            console.log("Message received.");
+        } else {
+            console.log("At least something was received.");
         }
     }
 

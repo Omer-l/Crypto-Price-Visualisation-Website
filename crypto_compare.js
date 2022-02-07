@@ -39,7 +39,7 @@ var Put;
 (function (Put) {
     //Holds access keys for APIs
     var pH = require('./passwordsHolder');
-    //To coneect to Amazon Web Services DynamoDB database
+    //To connect to Amazon Web Services DynamoDB database
     var AWS = require("aws-sdk");
     //Used to writing to data json file
     var fs = require("fs");
@@ -57,7 +57,8 @@ var Put;
         return SageMakerData;
     }());
     var currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    var numberOfPricesToGET = 20;
+    var numberOfPricesToGET = 1;
+    var dynamoDBBatch = [];
     //Class that wraps cryptoCompare web service
     var cryptoCompare = /** @class */ (function () {
         function cryptoCompare() {
@@ -86,22 +87,22 @@ var Put;
     //Gets the historical data for a range of dates.
     function getHistoricalData() {
         return __awaiter(this, void 0, void 0, function () {
-            var _loop_1, index;
+            var _loop_1, index, dynamoDB, batchNumber, rowNumber, batch, row, item, params;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _loop_1 = function (index) {
-                            var currency, fixerIo, promiseArray, sageMakerTrain, sageMakerEndpoint, trainTarget_1, endpointTarget_1, trainTargetIndex_1, trainLimit_1, resultArray, data_1, cryptoData, endpointIndex, secondsSinceEpochTrain, secondsSinceEpochEndpoint, trainStart, endpointStart, error_1;
+                            var currency, cryptoCompare1, promiseArray, sageMakerTrain, sageMakerEndpoint, trainTarget_1, endpointTarget_1, trainTargetIndex_1, trainLimit_1, resultArray, data_1, cryptoData, endpointIndex, secondsSinceEpochTrain, secondsSinceEpochEndpoint, trainStart, endpointStart, error_1;
                             return __generator(this, function (_b) {
                                 switch (_b.label) {
                                     case 0:
                                         currency = currencies[index];
-                                        fixerIo = new cryptoCompare();
+                                        cryptoCompare1 = new cryptoCompare();
                                         promiseArray = [];
                                         // //Work forward from start date
                                         // for (let i: number = 0; i < numDays; ++i) {
                                         //     //Add axios promise to array
-                                        promiseArray.push(fixerIo.getExchangeRates(currency));
+                                        promiseArray.push(cryptoCompare1.getExchangeRates(currency));
                                         _b.label = 1;
                                     case 1:
                                         _b.trys.push([1, 3, , 4]);
@@ -110,7 +111,7 @@ var Put;
                                         trainTarget_1 = [];
                                         endpointTarget_1 = [];
                                         trainTargetIndex_1 = 0;
-                                        trainLimit_1 = numberOfPricesToGET * 0.8;
+                                        trainLimit_1 = Math.ceil(numberOfPricesToGET * 0.6);
                                         return [4 /*yield*/, Promise.all(promiseArray)];
                                     case 2:
                                         resultArray = _b.sent();
@@ -134,54 +135,34 @@ var Put;
                                                 console.log("Error: undefined" + JSON.stringify(data_1));
                                             }
                                             else {
-                                                AWS.config.update({
-                                                    region: "us-east-1",
-                                                    endpoint: "https://dynamodb.us-east-1.amazonaws.com",
-                                                    accessKeyId: pH.apiKeys.awsAccessKeyId,
-                                                    secretAccessKey: pH.apiKeys.awsSecretAccessKey,
-                                                    sessionToken: pH.apiKeys.awsSessionToken
-                                                });
-                                                //Create date object to get date in UNIX time
+                                                //Create date object to get date in UNIX priceTimeStamp
                                                 var date = new Date();
-                                                //Create new DocumentClient
-                                                var documentClient = new AWS.DynamoDB.DocumentClient();
                                                 var price = (crypto.open + crypto.low + crypto.high) / 3; //takes the average price for the coin
-                                                var time = crypto.time;
-                                                //Table name and data for table
-                                                var params = {
-                                                    TableName: "CryptoData",
-                                                    Item: {
-                                                        PriceTimeStamp: time,
-                                                        Currency: currency,
-                                                        Price: price
-                                                    }
+                                                var priceTimeStamp = crypto.time;
+                                                var dynamoDBItem = {
+                                                    PriceTimeStamp: priceTimeStamp,
+                                                    Price: price,
+                                                    Currency: currency
                                                 };
+                                                dynamoDBBatch.push(dynamoDBItem);
                                                 if (trainTargetIndex_1++ < trainLimit_1)
                                                     trainTarget_1.push(price);
                                                 else
                                                     endpointTarget_1.push(price);
-                                                //Store data in DynamoDB and handle errors
-                                                // documentClient.put(params, (err, data) => {
-                                                //     if (err) {
-                                                //         console.error("Unable to add item", params.Item.Currency);
-                                                //         console.error("Error JSON:", JSON.stringify(err));
-                                                //     } else {
-                                                //         console.log("Currency added to table:", params.Item);
-                                                //     }
-                                                // });
                                             }
                                         });
+                                        //Write to JSON files
                                         sageMakerTrain.target = trainTarget_1;
                                         sageMakerEndpoint.target = endpointTarget_1;
                                         //Writes training data
-                                        fs.writeFile('./AWS_BACKUP/s3/cst3130-machine-learning-data/numerical_data_' + currency + '_train.json', JSON.stringify(sageMakerTrain), function (err) {
+                                        fs.writeFile('./AWS_BACKUP/s3/cst3130-machine-learning-data/numerical_data_' + currency + '.json', JSON.stringify(sageMakerTrain), function (err) {
                                             if (err) {
                                                 throw err;
                                             }
                                             console.log("JSON data is saved.");
                                         });
                                         //Writes endpoint data
-                                        fs.writeFile('./AWS_BACKUP/s3/cst3130-machine-learning-data/numerical_data_' + currency + '.json', JSON.stringify(sageMakerEndpoint), function (err) {
+                                        fs.writeFile('./AWS_BACKUP/s3/cst3130-machine-learning-data/numerical_data_' + currency + '_train.json', JSON.stringify(sageMakerEndpoint), function (err) {
                                             if (err) {
                                                 throw err;
                                             }
@@ -207,7 +188,58 @@ var Put;
                     case 3:
                         index++;
                         return [3 /*break*/, 1];
-                    case 4: return [2 /*return*/];
+                    case 4:
+                        /* Write to DynamoDB table */
+                        AWS.config.update({
+                            region: "us-east-1",
+                            endpoint: "https://dynamodb.us-east-1.amazonaws.com",
+                            accessKeyId: pH.apiKeys.awsAccessKeyId,
+                            secretAccessKey: pH.apiKeys.awsSecretAccessKey,
+                            sessionToken: pH.apiKeys.awsSessionToken
+                        });
+                        dynamoDB = new AWS.DynamoDB({ maxRetries: 13, retryDelayOptions: { base: 200 } });
+                        batchNumber = 0;
+                        rowNumber = 25 * batchNumber;
+                        for (batchNumber = 0; batchNumber < dynamoDBBatch.length && dynamoDBBatch[rowNumber] != undefined; batchNumber++) {
+                            batch = [];
+                            for (rowNumber = 25 * batchNumber; rowNumber < ((batchNumber + 1) * 25) && dynamoDBBatch[rowNumber] != undefined; rowNumber++) {
+                                row = dynamoDBBatch[rowNumber];
+                                item = {
+                                    PutRequest: {
+                                        Item: {
+                                            PriceTimeStamp: { N: (row.PriceTimeStamp + "") },
+                                            Currency: { S: row.Currency },
+                                            Price: { N: (row.Price + "") },
+                                        }
+                                    }
+                                };
+                                batch.push(item);
+                            }
+                            params = {
+                                RequestItems: {
+                                    "CryptoData": batch
+                                }
+                            };
+                            //Store data in DynamoDB and handle errors
+                            dynamoDB.batchWriteItem(params, function (err, data) {
+                                if (err) {
+                                    console.log("Error", err);
+                                }
+                                else {
+                                    console.log("Success", data);
+                                }
+                            });
+                            //Store data in DynamoDB and handle errors
+                            // documentClient.put(params, (err, data) => {
+                            //     if (err) {
+                            //         console.error("Unable to add item", params.Item.Currency);
+                            //         console.error("Error JSON:", JSON.stringify(err));
+                            //     } else {
+                            //         console.log("Currency added to table:", params.Item);
+                            //     }
+                            // });
+                        }
+                        return [2 /*return*/];
                 }
             });
         });
