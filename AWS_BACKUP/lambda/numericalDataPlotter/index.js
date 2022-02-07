@@ -6,9 +6,6 @@ let ws = require('websocket');
 // The database and table are 'in us-east-1'
 const ddb = new AWS.DynamoDB.DocumentClient({ region: 'us-east-1' });
 
-//Create instance of Comprehend
-let comprehend = new AWS.Comprehend();
-
 //Hard coded domain name and stage - use when pushing messages from server to client
 let domainName = "7dxr2k9a9b.execute-api.us-east-1.amazonaws.com";
 let stage = "prod";
