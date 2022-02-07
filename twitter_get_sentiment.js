@@ -49,7 +49,7 @@ var Twitter_Sentiment_Scanner;
                 'description',
             ],
             'max_results': [
-                '10',
+                '90',
             ]
         }).then(function (val) {
             var tweets = JSON.parse(JSON.stringify(val.data['data'])); //holds tweets
@@ -62,8 +62,8 @@ var Twitter_Sentiment_Scanner;
                 var params = {
                     TableName: "sentimentData",
                     Item: {
+                        message_id: tweetId,
                         date: tweet.created_at,
-                        tweet_id: tweetId,
                         tweet_message: text,
                         currency: currency
                     }

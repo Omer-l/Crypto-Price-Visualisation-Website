@@ -68,7 +68,7 @@ namespace Put {
     }
 
     const currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    const numberOfPricesToGET = 1;
+    const numberOfPricesToGET = 30;
     let dynamoDBBatch: Array<DynamoDBItem> = [];
 
 //Class that wraps cryptoCompare web service

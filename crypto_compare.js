@@ -57,7 +57,7 @@ var Put;
         return SageMakerData;
     }());
     var currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    var numberOfPricesToGET = 1;
+    var numberOfPricesToGET = 30;
     var dynamoDBBatch = [];
     //Class that wraps cryptoCompare web service
     var cryptoCompare = /** @class */ (function () {

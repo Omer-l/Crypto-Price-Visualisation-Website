@@ -63,7 +63,7 @@ for(let index = 0; index < currencies.length; index++) {
             'description',
         ],
         'max_results': [
-            '10',
+            '90',
         ]
     }).then((val) => {
         let tweets = JSON.parse(JSON.stringify(val.data['data'])); //holds tweets
@@ -76,8 +76,8 @@ for(let index = 0; index < currencies.length; index++) {
             let params = {
                 TableName: "sentimentData",
                 Item: {
+                    message_id: tweetId,
                     date: tweet.created_at,
-                    tweet_id: tweetId,
                     tweet_message: text,
                     currency: currency
                 }
