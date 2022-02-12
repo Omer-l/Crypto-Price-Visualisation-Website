@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="bin\www" type="NodeJSConfigurationType" path-to-js-file="crypto_compare.js" working-dir="$PROJECT_DIR$">
+  <configuration default="false" name="twitter scraper" type="NodeJSConfigurationType" path-to-js-file="twitter_get_sentiment.js" working-dir="$PROJECT_DIR$">
     <envs>
       <env name="DEBUG" value="cw2web:*" />
     </envs>

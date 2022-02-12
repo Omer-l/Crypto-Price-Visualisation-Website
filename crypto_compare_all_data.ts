@@ -68,11 +68,11 @@ namespace Put {
     }
 
     const currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    const numberOfPricesToGET = 30;
+    const numberOfPricesToGET = 45;
     let dynamoDBBatch: Array<DynamoDBItem> = [];
 
 //Class that wraps cryptoCompare web service
-    export class cryptoCompare {
+    export class cryptoCompareAllData {
         //Base URL of CryptoCompare
         baseURL: string = "https://min-api.cryptocompare.com/data/v2/histoday";
         accessKey = pH.apiKeys.cryptoCompareAccessKey;
@@ -101,27 +101,15 @@ namespace Put {
     async function getHistoricalData() {
         for(let index = 0; index < currencies.length; index++) {
             let currency = currencies[index];
-            /* You should check that the start date plus the number of days is
-            less than the current date*/
-
-            //Create moment date, which will enable us to add days easily.
-            // let start = moment(startDate);
 
             //Create instance of cryptoCompare class
-            let cryptoCompare1: cryptoCompare = new cryptoCompare();
+            let cryptoCompare1: cryptoCompare = new cryptoCompareAllData();
 
             //Array to hold promises
             let promiseArray: Array<Promise<object>> = [];
 
             // //Work forward from start date
-            // for (let i: number = 0; i < numDays; ++i) {
-            //     //Add axios promise to array
             promiseArray.push(cryptoCompare1.getExchangeRates(currency));
-
-            //     //Increase the number of days
-            //     date.add(1, 'days');
-            // }
-
             //Wait for all promises to execute
             try {
                 let sageMakerTrain = new SageMakerData();
@@ -152,6 +140,9 @@ namespace Put {
 
                 cryptoData.forEach((crypto, index) => {
                     console.log(crypto);
+
+                    if(index == cryptoData.length - 1)
+                        break; //do not add the last day. as it will be used to add live feed
 
                     if (data == undefined) {
                         console.log("Error: undefined" + JSON.stringify(data));
@@ -231,12 +222,6 @@ namespace Put {
                 }
                 batch.push(item);
             }
-            //Table name and data for table
-            // let params = {
-            //     TableName: "CryptoData",
-            //     Item: {
-            //     }
-            // };
             var params = {
                 RequestItems: {
                     "CryptoData": batch
@@ -252,15 +237,6 @@ namespace Put {
                     console.log("Success", data);
                 }
             });
-                //Store data in DynamoDB and handle errors
-                // documentClient.put(params, (err, data) => {
-                //     if (err) {
-                //         console.error("Unable to add item", params.Item.Currency);
-                //         console.error("Error JSON:", JSON.stringify(err));
-                //     } else {
-                //         console.log("Currency added to table:", params.Item);
-                //     }
-                // });
 
         }
     }

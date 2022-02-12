@@ -57,13 +57,13 @@ var Put;
         return SageMakerData;
     }());
     var currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    var numberOfPricesToGET = 30;
+    var numberOfPricesToGET = 10;
     var dynamoDBBatch = [];
     //Class that wraps cryptoCompare web service
     var cryptoCompare = /** @class */ (function () {
         function cryptoCompare() {
             //Base URL of CryptoCompare
-            this.baseURL = "https://min-api.cryptocompare.com/data/v2/histoday";
+            this.baseURL = "https://min-api.cryptocompare.com/data/v2/histohour";
             this.accessKey = pH.apiKeys.cryptoCompareAccessKey;
         }
         //Returns a Promise that will get the exchange rates for the specified date
@@ -83,6 +83,10 @@ var Put;
     function convertSecondsToDateAndTime(secondsSinceEpoch) {
         var date = new Date(secondsSinceEpoch * 1000).toISOString().split('T');
         return date[0] + " " + date[1].split('.')[0];
+    }
+    function getHourSince12Yesterday() {
+        var timeNowInMS = new Date();
+        var hourNow = timeNowInMS.getHours();
     }
     //Gets the historical data for a range of dates.
     function getHistoricalData() {
@@ -247,4 +251,4 @@ var Put;
     //Call function to get historical data
     getHistoricalData();
 })(Put || (Put = {}));
-//# sourceMappingURL=crypto_compare.js.map
+//# sourceMappingURL=crypto_compare_latest_data.js.map

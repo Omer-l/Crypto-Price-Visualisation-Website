@@ -5,9 +5,6 @@
     <title>Crypto Predict And Visualise</title>
 <!--    Plotly.js for graph plotting.-->
     <script src="https://cdn.plot.ly/plotly-2.8.3.min.js"></script>
-    <!doctype html>
-    <html lang="en">
-    <head>
         <!-- Required meta tags -->
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -122,11 +119,35 @@
             Plotly.newPlot('pieDiv3', dataPie3,layout);
             Plotly.newPlot('pieDiv4', dataPie4,layout);
             Plotly.newPlot('pieDiv5', dataPie5,layout);
+        } else if (messageLowerCase.includes("updatenumerical")) {
+            let plotlyData = JSON.parse(message);
+            let lines = plotlyData.data;
+            let layout = {
+                xaxis: {
+                    autorange: true,
+                }
+            };
+            let xValues = lines[0].x;
+            let yValuesSOL = lines[0].y;
+            let yValuesATOM = lines[1].y;
+            let yValuesLUNA = lines[2].y;
+            let yValuesDOT = lines[3].y;
+            let yValuesLINK = lines[4].y;
+            Plotly.extendTraces('numericalGraphDiv', {
+                x: [xValues,  xValues, xValues, xValues, xValues],
+                y: [yValuesSOL, yValuesATOM, yValuesLUNA, yValuesDOT, yValuesLINK]
+            }, [0, 1, 2, 3, 4]);
+            console.log("LINEOINS: " + JSON.stringify(lines));
+
         } else if (messageLowerCase.includes("numerical")) {
             let plotlyData = JSON.parse(message);
             let lines = plotlyData.data;
-            console.log(JSON.stringify(lines) + "LENGTH: " + lines.length);
-            Plotly.newPlot('numericalGraphDiv', lines);
+            let layout = {
+                xaxis: {
+                    autorange: true,
+                }
+            };
+            Plotly.newPlot('numericalGraphDiv', lines, layout);
         } else if(messageLowerCase.includes("tweet")) { //request update on pie charts
             updatePieChart();
             document.getElementById("messages").innerHTML += ("Server message: " + message + "<br />");
