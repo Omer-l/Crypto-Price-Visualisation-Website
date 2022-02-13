@@ -1,5 +1,7 @@
 //aws-sdk will be used to get DynamoDB
 let AWS = require("aws-sdk");
+//AWS class that will query endpoint
+let awsRuntime = new AWS.SageMakerRuntime({});
 //Import external library with websocket functions
 let ws = require('websocket');
 
@@ -11,15 +13,45 @@ let domainName = "7dxr2k9a9b.execute-api.us-east-1.amazonaws.com";
 let stage = "prod";
 
 
+//    assigns seconds and date
+function convertSecondsToDateAndTime(secondsSinceEpoch) {
+    let date = new Date(secondsSinceEpoch*1000).toISOString().split('T');
+    return date[0] + " " + date[1].split('.')[0];
+}
 
+//reads in crypto data
 function readCryptoData() {
     const params = {
         TableName: 'CryptoData',
         IndexName: 'Currency-PriceTimeStamp-index',
         KeyConditionExpression: 'primeTimeStamp= :primeTimeStamp',
         ScanIndexForward: false
-    }
+    };
     return ddb.scan(params).promise();
+}
+
+//reads in the predictions
+function readCryptoPredictionData() {
+    const params = {
+        TableName: 'EndpointPredictions',
+        ScanIndexForward: false
+    };
+    return ddb.scan(params).promise();
+}
+
+//turns a string JSON into an array
+function getData(dataString) {
+    dataString = dataString.replace('[', '');
+    dataString = dataString.replace(']', '');
+    let splitData = dataString.split(',');
+
+    let dataToNumbers = [];
+
+    for(let splitDataIndex = 0 ; splitDataIndex < splitData.length; splitDataIndex++) {
+        let data = splitData[splitDataIndex];
+        dataToNumbers[splitDataIndex] = parseFloat(data);
+    }
+    return dataToNumbers;
 }
 
 exports.handler = async (event) => {
@@ -39,6 +71,8 @@ exports.handler = async (event) => {
     let count = 0; //there is n / numberOfCryptos of time stamps, to avoid duplication
     let totalScannedCryptos = cryptos.Items.length;
     let numberOfTimeStamps = Math.ceil(totalScannedCryptos / numberOfCryptoTypes);
+    let startTimeInSeconds = cryptos.Items[0].PriceTimeStamp;
+    let startDateAndTime = convertSecondsToDateAndTime(startTimeInSeconds);
     cryptos.Items.forEach(function(crypto) {
         if(count < numberOfTimeStamps) {
             //converts the seconds to date from epoch time
@@ -63,56 +97,107 @@ exports.handler = async (event) => {
     });
 
     //Lines
-    var solLine = {
-        x: xValues,
-        y: yValuesSOL,
-        mode: 'lines',
-        name: 'SOL'
-    };
-    var atomLine = {
-        x: xValues,
-        y: yValuesATOM,
-        mode: 'lines',
-        name: 'ATOM'
-    };
-    var lunaLine = {
-        x: xValues,
-        y: yValuesLUNA,
-        mode: 'lines',
-        name: 'LUNA'
-    };
-    var dotLine = {
-        x: xValues,
-        y: yValuesDOT,
-        mode: 'lines',
-        name: 'DOT'
-    };
-    var linkLine = {
-        x: xValues,
-        y: yValuesLINK,
-        mode: 'lines',
-        name: 'LINK'
-    };
 
-    lines.push(solLine);
-    lines.push(atomLine);
-    lines.push(lunaLine);
-    lines.push(dotLine);
-    lines.push(linkLine);
+    //Crypto 1
+    try {
+        var atomLine = {
+            x: xValues,
+            y: yValuesATOM,
+            mode: 'lines',
+            legendgroup: "atomGroup",
+            name: 'ATOM'
+        };
+        //get predictions for ATOM
 
-    let msg = {
-        data : lines,
-        type : 'numerical'
-    };
-    let msgString = JSON.stringify(msg);
-    // console.log("HELLOW: " + msgString);
-    //Get promises to send messages to connected clients
-    let sendMsgPromises = await ws.getSendMessagePromises(msgString, domainName, stage);
-    //Execute promises
-    await Promise.all(sendMsgPromises);
+        //Crypto 2
+        var dotLine = {
+            x: xValues,
+            y: yValuesDOT,
+            legendgroup: "dotGroup",
+            mode: 'lines',
+            name: 'DOT'
+        };
 
-    return {
-        statusCode: 200,
-        body: "Ok"
-    };
+        //Crypto 3
+        var linkLine = {
+            x: xValues,
+            y: yValuesLINK,
+            legendgroup: "linkGroup",
+            mode: 'lines',
+            name: 'LINK'
+        };
+
+        //Crypto 4
+        var lunaLine = {
+            x: xValues,
+            y: yValuesLUNA,
+            legendgroup: "lunaGroup",
+            mode: 'lines',
+            name: 'LUNA'
+        };
+
+        //Crypto 5
+        var solLine = {
+            x: xValues,
+            y: yValuesSOL,
+            mode: 'lines',
+            legendgroup: "solGroup",
+            name: 'SOL'
+        };
+
+        let allPredictions = await readCryptoPredictionData();
+
+        allPredictions.Items.forEach(function(prediction) {
+            let currency = prediction.Currency;
+            if (currency == "ATOM") {
+
+            } else if (currency == "DOT") {
+
+            } else if (currency == "LINK") {
+
+            } else if (currency == "LUNA") {
+
+            } else if (currency == "SOL") {
+
+            }
+
+            let means = getData(prediction.Means);
+            let lowerQuantiles = prediction.LowerQuantiles;
+            let upperQuantiles = prediction.UpperQuantiles;
+            let samples = prediction.Samples;
+
+            console.log("CURR: " +currency);
+            console.log("MEANS: " +means);
+            console.log("LQ: "+ lowerQuantiles);
+            console.log("UQ: " +upperQuantiles);
+            console.log("SAM: " +samples.length);
+        });
+
+        console.log(allPredictions);
+        lines.push(atomLine);
+        lines.push(dotLine);
+        lines.push(linkLine);
+        lines.push(lunaLine);
+        lines.push(solLine);
+
+        let msg = {
+            data : lines,
+            type : 'numerical'
+        };
+
+        let msgString = JSON.stringify(msg);
+        // console.log("HELLOW: " + msgString);
+        //Get promises to send messages to connected clients
+        let sendMsgPromises = await ws.getSendMessagePromises(msgString, domainName, stage);
+        //Execute promises
+        await Promise.all(sendMsgPromises);
+
+    } catch(err) {
+        //Return error response
+        const response = {
+            statusCode: 500,
+            body: JSON.stringify('ERROR: ' + err),
+        };
+        return response;
+    }
 };
