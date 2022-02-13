@@ -2,8 +2,6 @@
 let AWS = require("aws-sdk");
 //AWS class that will query endpoint
 let awsRuntime = new AWS.SageMakerRuntime({});
-//Import external library with websocket functions
-let ws = require('websocket');
 
 // The database and table are 'in us-east-1'
 const ddb = new AWS.DynamoDB.DocumentClient({ region: 'us-east-1' });
@@ -25,6 +23,30 @@ function readCryptoData() {
     return ddb.scan(params).promise();
 }
 
+function writeEndpointData(currency, means, lowerQuantiles, upperQuantiles, samples) {
+
+    var params = {
+        TableName: 'EndpointPredictions',
+        Item: {
+            'Currency' : currency,
+            'Means' : means,
+            'LowerQuantiles' : lowerQuantiles,
+            'UpperQuantiles' :  upperQuantiles,
+            'Samples' : samples,
+        }
+    };
+
+    // // Call DynamoDB to add the item to the table
+    // ddb.putItem(params, function(err, data) {
+    //   if (err) {
+    //     console.log("Error", err);
+    //   } else {
+    //     console.log("Success", data);
+    //   }
+    return ddb.put(params).promise();
+    // });
+}
+
 //Gets end point predictions given an endpoint name
 async function readEndpoint(endpointName, endpointData) {
     //Parameters for calling endpoint
@@ -35,6 +57,38 @@ async function readEndpoint(endpointName, endpointData) {
         Accept: "application/json"
     };
     return awsRuntime.invokeEndpoint(params).promise();
+}
+
+async function addCurrencyPredictionsToDynamoDB(startDateAndTime, yValues, currency) {
+    //get predictions for ATOM
+    let endpointData = {
+        instances:
+            [
+                {
+                    start: startDateAndTime,
+                    target: yValues
+                }
+            ],
+        configuration:
+            {
+                num_samples: 50,
+                output_types:["mean","quantiles","samples"],
+                quantiles:["0.1","0.9"]
+            }
+    };
+    console.log(JSON.stringify(endpointData));
+    //GET predictions from sagemaker
+    //promise awaiting
+    const predictionItem  = await readEndpoint(currency.toLowerCase(), endpointData);
+
+    const predictions = JSON.parse(Buffer.from(predictionItem.Body)).predictions;
+    const means = JSON.stringify(predictions[0]['mean']);
+    const lowerQuantiles = JSON.stringify(predictions[0]['quantiles']['0.1']);
+    const upperQuantiles = JSON.stringify(predictions[0]['quantiles']['0.9']);
+    const samples = JSON.stringify(predictions[0]['samples'][0]);
+    console.log(predictions);
+
+    await writeEndpointData(currency, means, lowerQuantiles, upperQuantiles, samples);
 }
 
 exports.handler = async (event) => {
@@ -78,98 +132,12 @@ exports.handler = async (event) => {
         else if(currency.includes("LINK"))
             yValuesLINK.push(crypto.Price);
     });
-
-    //Lines
-
-    //Crypto 1
     try {
-        var atomLine = {
-            x: xValues,
-            y: yValuesATOM,
-            mode: 'lines',
-            legendgroup: "atomGroup",
-            name: 'ATOM'
-        };
-        //get predictions for ATOM
-        let endpointDataATOM = {
-            instances:
-                [
-                    {
-                        start: startDateAndTime,
-                        target: yValuesATOM
-                    }
-                ],
-            configuration:
-                {
-                    num_samples: 50,
-                    output_types:["mean","quantiles","samples"],
-                    quantiles:["0.1","0.9"]
-                }
-        };
-        console.log(JSON.stringify(endpointDataATOM));
-        //GET predictions from sagemaker
-        //promise awaiting
-        const predictionItem  = await readEndpoint("atom", endpointDataATOM);
-
-        const predictions = JSON.parse(Buffer.from(predictionItem.Body)).predictions;
-        const mean = predictions[0]['mean'];
-        const lowerQuantile = predictions[0]['quantiles']['0.1'];
-        const upperQuantile = predictions[0]['quantiles']['0.9'];
-        const samples = predictions[0]['samples'];
-
-        console.log(predictions);
-        //Crypto 2
-        var dotLine = {
-            x: xValues,
-            y: yValuesDOT,
-            legendgroup: "dotGroup",
-            mode: 'lines',
-            name: 'DOT'
-        };
-
-        //Crypto 3
-        var linkLine = {
-            x: xValues,
-            y: yValuesLINK,
-            legendgroup: "linkGroup",
-            mode: 'lines',
-            name: 'LINK'
-        };
-
-        //Crypto 4
-        var lunaLine = {
-            x: xValues,
-            y: yValuesLUNA,
-            legendgroup: "lunaGroup",
-            mode: 'lines',
-            name: 'LUNA'
-        };
-
-        //Crypto 5
-        var solLine = {
-            x: xValues,
-            y: yValuesSOL,
-            mode: 'lines',
-            legendgroup: "solGroup",
-            name: 'SOL'
-        };
-        //get predictions for SOL
-        let endpointDataSOL = {
-            "instances":
-                [
-                    {
-                        "start": startDateAndTime,
-                        "target": yValuesSOL
-                    }
-                ],
-            "configuration":
-                {
-                    "num_samples": 50,
-                    "output_types":["mean","quantiles","samples"],
-                    "quantiles":["0.1","0.9"]
-                }
-        };
-
+        await addCurrencyPredictionsToDynamoDB(startDateAndTime, yValuesATOM, "ATOM");
+        await addCurrencyPredictionsToDynamoDB(startDateAndTime, yValuesDOT, "DOT");
+        await addCurrencyPredictionsToDynamoDB(startDateAndTime, yValuesLINK, "LINK");
+        await addCurrencyPredictionsToDynamoDB(startDateAndTime, yValuesLUNA, "LUNA");
+        await addCurrencyPredictionsToDynamoDB(startDateAndTime, yValuesSOL, "SOL");
     } catch(err) {
         //Return error response
         const response = {
