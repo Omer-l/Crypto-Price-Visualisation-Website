@@ -12,3 +12,10 @@ function getHourSince12Yesterday() {
 }
 
 console.log(getHourSince12Yesterday());
+
+function convertSecondsToDateAndTime(secondsSinceEpoch) {
+    let date = new Date(secondsSinceEpoch*1000).toISOString().split('T');
+    return date[0] + " " + date[1].split('.')[0];
+}
+
+console.log(convertSecondsToDateAndTime(1593734400));

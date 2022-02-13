@@ -57,7 +57,7 @@ var Put;
         return SageMakerData;
     }());
     var currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    var numberOfPricesToGET = 45;
+    var numberOfPricesToGET = 600;
     var dynamoDBBatch = [];
     //Class that wraps cryptoCompare web service
     var cryptoCompareAllData = /** @class */ (function () {
@@ -84,6 +84,7 @@ var Put;
         var date = new Date(secondsSinceEpoch * 1000).toISOString().split('T');
         return date[0] + " " + date[1].split('.')[0];
     }
+    //Gets the historical data for a range of dates.
     function getHistoricalData() {
         return __awaiter(this, void 0, void 0, function () {
             var _loop_1, index, dynamoDB, batchNumber, rowNumber, batch, row, item, params;
@@ -91,14 +92,13 @@ var Put;
                 switch (_a.label) {
                     case 0:
                         _loop_1 = function (index) {
-                            var currency, cryptoCompare1, promiseArray, sageMakerTrain, sageMakerEndpoint, trainTarget_1, endpointTarget_1, trainTargetIndex_1, trainLimit_1, resultArray, data_1, cryptoData_1, endpointIndex, secondsSinceEpochTrain, secondsSinceEpochEndpoint, trainStart, endpointStart, error_1;
+                            var currency, cryptoCompare1, promiseArray, sageMakerTrain, sageMakerEndpoint, trainTarget_1, endpointTarget_1, trainTargetIndex_1, trainLimit_1, resultArray, data_1, cryptoData, endpointIndex, secondsSinceEpochTrain, secondsSinceEpochEndpoint, trainStart, endpointStart, error_1;
                             return __generator(this, function (_b) {
                                 switch (_b.label) {
                                     case 0:
                                         currency = currencies[index];
                                         cryptoCompare1 = new cryptoCompareAllData();
                                         promiseArray = [];
-                                        // //Work forward from start date
                                         promiseArray.push(cryptoCompare1.getExchangeRates(currency));
                                         _b.label = 1;
                                     case 1:
@@ -108,7 +108,7 @@ var Put;
                                         trainTarget_1 = [];
                                         endpointTarget_1 = [];
                                         trainTargetIndex_1 = 0;
-                                        trainLimit_1 = Math.ceil(numberOfPricesToGET * 0.6);
+                                        trainLimit_1 = Math.ceil(numberOfPricesToGET * 0.5);
                                         return [4 /*yield*/, Promise.all(promiseArray)];
                                     case 2:
                                         resultArray = _b.sent();
@@ -118,18 +118,16 @@ var Put;
                                         //Check that API call succeeded.
                                         if (data_1.Response != "Success")
                                             console.log("UNSUCCESSFUL REQUEST" + JSON.stringify(data_1.Response));
-                                        cryptoData_1 = data_1.Data.Data;
+                                        cryptoData = data_1.Data.Data;
                                         endpointIndex = trainLimit_1;
-                                        secondsSinceEpochTrain = cryptoData_1[trainTargetIndex_1].time;
-                                        secondsSinceEpochEndpoint = cryptoData_1[endpointIndex].time;
+                                        secondsSinceEpochTrain = cryptoData[endpointIndex].time;
+                                        secondsSinceEpochEndpoint = cryptoData[trainTargetIndex_1].time;
                                         trainStart = convertSecondsToDateAndTime(secondsSinceEpochTrain);
                                         endpointStart = convertSecondsToDateAndTime(secondsSinceEpochEndpoint);
                                         sageMakerTrain.start = trainStart;
                                         sageMakerEndpoint.start = endpointStart;
-                                        cryptoData_1.forEach(function (crypto, index) {
+                                        cryptoData.forEach(function (crypto, index) {
                                             console.log(crypto);
-                                            if (index == cryptoData_1.length - 1)
-                                                break; //do not add the last day. as it will be used to add live feed
                                             if (data_1 == undefined) {
                                                 console.log("Error: undefined" + JSON.stringify(data_1));
                                             }

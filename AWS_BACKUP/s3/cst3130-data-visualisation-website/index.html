@@ -150,7 +150,7 @@
             Plotly.newPlot('numericalGraphDiv', lines, layout);
         } else if(messageLowerCase.includes("tweet")) { //request update on pie charts
             updatePieChart();
-            document.getElementById("messages").innerHTML += ("Server message: " + message + "<br />");
+            document.getElementById("messages").innerHTML += ("Server message: " + message + "<br>" + "Refreshing the pie charts..." + "<br>");
             console.log("Message received.");
         } else if(messageLowerCase.includes("currency")) { //request update on numerical graph
             updateNumericalGraph();
