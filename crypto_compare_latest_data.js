@@ -57,7 +57,7 @@ var Put;
         return SageMakerData;
     }());
     var currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    var numberOfPricesToGET = 10;
+    var numberOfPricesToGET = getHourSince12Yesterday(); //gets the number of hours since 12:00 yesterday for the number of updates.
     var dynamoDBBatch = [];
     //Class that wraps cryptoCompare web service
     var cryptoCompare = /** @class */ (function () {
@@ -84,6 +84,7 @@ var Put;
         var date = new Date(secondsSinceEpoch * 1000).toISOString().split('T');
         return date[0] + " " + date[1].split('.')[0];
     }
+    //Gets hours from 12:00 to next day 12:00
     function getHourSince12Yesterday() {
         var timeNowInMS = new Date();
         var hourNow = timeNowInMS.getHours();
@@ -101,26 +102,23 @@ var Put;
                 switch (_a.label) {
                     case 0:
                         _loop_1 = function (index) {
-                            var currency, cryptoCompare1, promiseArray, sageMakerTrain, sageMakerEndpoint, trainTarget_1, endpointTarget_1, trainTargetIndex_1, trainLimit_1, resultArray, data_1, cryptoData, endpointIndex, secondsSinceEpochTrain, secondsSinceEpochEndpoint, trainStart, endpointStart, error_1;
+                            var currency, cryptoCompare1, promiseArray, sageMakerTrain, sageMakerEndpoint, trainTarget, endpointTarget, trainTargetIndex, trainLimit, resultArray, data_1, cryptoData, endpointIndex, secondsSinceEpochTrain, secondsSinceEpochEndpoint, trainStart, endpointStart, error_1;
                             return __generator(this, function (_b) {
                                 switch (_b.label) {
                                     case 0:
                                         currency = currencies[index];
                                         cryptoCompare1 = new cryptoCompare();
                                         promiseArray = [];
-                                        // //Work forward from start date
-                                        // for (let i: number = 0; i < numDays; ++i) {
-                                        //     //Add axios promise to array
                                         promiseArray.push(cryptoCompare1.getExchangeRates(currency));
                                         _b.label = 1;
                                     case 1:
                                         _b.trys.push([1, 3, , 4]);
                                         sageMakerTrain = new SageMakerData();
                                         sageMakerEndpoint = new SageMakerData();
-                                        trainTarget_1 = [];
-                                        endpointTarget_1 = [];
-                                        trainTargetIndex_1 = 0;
-                                        trainLimit_1 = Math.ceil(numberOfPricesToGET * 0.6);
+                                        trainTarget = [];
+                                        endpointTarget = [];
+                                        trainTargetIndex = 0;
+                                        trainLimit = Math.ceil(numberOfPricesToGET * 0.6);
                                         return [4 /*yield*/, Promise.all(promiseArray)];
                                     case 2:
                                         resultArray = _b.sent();
@@ -131,8 +129,8 @@ var Put;
                                         if (data_1.Response != "Success")
                                             console.log("UNSUCCESSFUL REQUEST" + JSON.stringify(data_1.Response));
                                         cryptoData = data_1.Data.Data;
-                                        endpointIndex = trainLimit_1;
-                                        secondsSinceEpochTrain = cryptoData[trainTargetIndex_1].time;
+                                        endpointIndex = trainLimit;
+                                        secondsSinceEpochTrain = cryptoData[trainTargetIndex].time;
                                         secondsSinceEpochEndpoint = cryptoData[endpointIndex].time;
                                         trainStart = convertSecondsToDateAndTime(secondsSinceEpochTrain);
                                         endpointStart = convertSecondsToDateAndTime(secondsSinceEpochEndpoint);
@@ -154,28 +152,7 @@ var Put;
                                                     Currency: currency
                                                 };
                                                 dynamoDBBatch.push(dynamoDBItem);
-                                                if (trainTargetIndex_1++ < trainLimit_1)
-                                                    trainTarget_1.push(price);
-                                                else
-                                                    endpointTarget_1.push(price);
                                             }
-                                        });
-                                        //Write to JSON files
-                                        sageMakerTrain.target = trainTarget_1;
-                                        sageMakerEndpoint.target = endpointTarget_1;
-                                        //Writes training data
-                                        fs.writeFile('./AWS_BACKUP/s3/cst3130-machine-learning-data/numerical_data_' + currency + '.json', JSON.stringify(sageMakerTrain), function (err) {
-                                            if (err) {
-                                                throw err;
-                                            }
-                                            console.log("JSON data is saved.");
-                                        });
-                                        //Writes endpoint data
-                                        fs.writeFile('./AWS_BACKUP/s3/cst3130-machine-learning-data/numerical_data_' + currency + '_train.json', JSON.stringify(sageMakerEndpoint), function (err) {
-                                            if (err) {
-                                                throw err;
-                                            }
-                                            console.log("JSON data is saved.");
                                         });
                                         return [3 /*break*/, 4];
                                     case 3:
