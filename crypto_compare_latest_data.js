@@ -251,4 +251,8 @@ var Put;
     //Call function to get historical data
     getHistoricalData();
 })(Put || (Put = {}));
+<<<<<<< HEAD:crypto_compare_latest_data.js
 //# sourceMappingURL=crypto_compare_latest_data.js.map
+=======
+//# sourceMappingURL=crypto_compare_all_data.js.map
+>>>>>>> 0c5a2e7f49eaa1fd42a6be3b07cfe6c3fa76ce2b:crypto_compare_all_data.js

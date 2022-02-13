@@ -84,7 +84,6 @@ var Put;
         var date = new Date(secondsSinceEpoch * 1000).toISOString().split('T');
         return date[0] + " " + date[1].split('.')[0];
     }
-    //Gets the historical data for a range of dates.
     function getHistoricalData() {
         return __awaiter(this, void 0, void 0, function () {
             var _loop_1, index, dynamoDB, batchNumber, rowNumber, batch, row, item, params;
