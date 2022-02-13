@@ -35,16 +35,7 @@ function writeEndpointData(currency, means, lowerQuantiles, upperQuantiles, samp
             'Samples' : samples,
         }
     };
-
-    // // Call DynamoDB to add the item to the table
-    // ddb.putItem(params, function(err, data) {
-    //   if (err) {
-    //     console.log("Error", err);
-    //   } else {
-    //     console.log("Success", data);
-    //   }
     return ddb.put(params).promise();
-    // });
 }
 
 //Gets end point predictions given an endpoint name
