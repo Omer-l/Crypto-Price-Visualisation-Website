@@ -72,7 +72,9 @@ exports.handler = async (event) => {
     let totalScannedCryptos = cryptos.Items.length;
     let numberOfTimeStamps = Math.ceil(totalScannedCryptos / numberOfCryptoTypes);
     let startTimeInSeconds = cryptos.Items[0].PriceTimeStamp;
-    let startDateAndTime = convertSecondsToDateAndTime(startTimeInSeconds);
+    let endTimeInSeconds = cryptos.Items[cryptos.Items.length - 1].PriceTimeStamp;
+    const secondsInADay = 86400;
+
     cryptos.Items.forEach(function(crypto) {
         if(count < numberOfTimeStamps) {
             //converts the seconds to date from epoch time
@@ -104,7 +106,7 @@ exports.handler = async (event) => {
             x: xValues,
             y: yValuesATOM,
             mode: 'lines',
-            legendgroup: "atomGroup",
+            legendgroup: "ATOMGroup",
             name: 'ATOM'
         };
         //get predictions for ATOM
@@ -113,7 +115,7 @@ exports.handler = async (event) => {
         var dotLine = {
             x: xValues,
             y: yValuesDOT,
-            legendgroup: "dotGroup",
+            legendgroup: "DOTGroup",
             mode: 'lines',
             name: 'DOT'
         };
@@ -122,7 +124,7 @@ exports.handler = async (event) => {
         var linkLine = {
             x: xValues,
             y: yValuesLINK,
-            legendgroup: "linkGroup",
+            legendgroup: "LINKGroup",
             mode: 'lines',
             name: 'LINK'
         };
@@ -131,7 +133,7 @@ exports.handler = async (event) => {
         var lunaLine = {
             x: xValues,
             y: yValuesLUNA,
-            legendgroup: "lunaGroup",
+            legendgroup: "LUNAGroup",
             mode: 'lines',
             name: 'LUNA'
         };
@@ -141,39 +143,84 @@ exports.handler = async (event) => {
             x: xValues,
             y: yValuesSOL,
             mode: 'lines',
-            legendgroup: "solGroup",
+            legendgroup: "SOLGroup",
             name: 'SOL'
         };
 
         let allPredictions = await readCryptoPredictionData();
+        //assign time series into the x values
+        let currentEndTimeInSeconds = endTimeInSeconds;
+        let predictionXValues = []; //the time series for the predictions
+        let numberOfTimeStampsInPrediction = getData(allPredictions.Items[0].Means).length; //number of data points in prediction
+        for(let indexOfTime = 0; indexOfTime < numberOfTimeStampsInPrediction; indexOfTime++) {
+            let currentDateAndTime = convertSecondsToDateAndTime(currentEndTimeInSeconds);
+            predictionXValues[indexOfTime] = currentDateAndTime;
+            currentEndTimeInSeconds += secondsInADay;
+        }
 
+
+        //The first Y
+        let initialY = cryptos.Items[cryptos.Items.length - 1].Price;
+
+        //assign mean, lower quantile, upper quantile and sample values for each crypto
         allPredictions.Items.forEach(function(prediction) {
             let currency = prediction.Currency;
-            if (currency == "ATOM") {
 
-            } else if (currency == "DOT") {
-
-            } else if (currency == "LINK") {
-
-            } else if (currency == "LUNA") {
-
-            } else if (currency == "SOL") {
-
-            }
+            if(currency == "ATOM")
+                initialY = yValuesATOM[yValuesATOM.length - 1];
+            else if(currency == "DOT")
+                initialY = yValuesDOT[yValuesDOT.length - 1];
+            else if(currency == "LINK")
+                initialY = yValuesLINK[yValuesLINK.length - 1];
+            else if(currency == "LUNA")
+                initialY = yValuesLUNA[yValuesLUNA.length - 1];
+            else if(currency == "SOL")
+                initialY = yValuesSOL[yValuesSOL.length - 1];
 
             let means = getData(prediction.Means);
-            let lowerQuantiles = prediction.LowerQuantiles;
-            let upperQuantiles = prediction.UpperQuantiles;
-            let samples = prediction.Samples;
+            means.unshift(initialY);
+            let lowerQuantiles = getData(prediction.LowerQuantiles);
+            lowerQuantiles.unshift(initialY);
+            let upperQuantiles = getData(prediction.UpperQuantiles);
+            upperQuantiles.unshift(initialY);
+            let samples = getData(prediction.Samples);
+            samples.unshift(initialY);
 
-            console.log("CURR: " +currency);
-            console.log("MEANS: " +means);
-            console.log("LQ: "+ lowerQuantiles);
-            console.log("UQ: " +upperQuantiles);
-            console.log("SAM: " +samples.length);
+            let predictionMeanLine = {
+                x: predictionXValues,
+                y: means,
+                mode: 'lines',
+                name: 'Mean',
+                legendgroup: currency + "Group",
+            };
+            let predictionLowerQuantileLine = {
+                x: predictionXValues,
+                y: lowerQuantiles,
+                mode: 'lines',
+                name: 'Lower Quantile',
+                legendgroup: currency + "Group"
+            };
+            let predictionUpperQuantileLine = {
+                x: predictionXValues,
+                y: upperQuantiles,
+                mode: 'lines',
+                name: 'Upper Quantile',
+                legendgroup: currency + "Group"
+            };
+            let predictionSampleLine = {
+                x: predictionXValues,
+                y: samples,
+                mode: 'lines',
+                name: 'Sample',
+                legendgroup: currency + "Group",
+            };
+            //adds to lines array
+            lines.push(predictionMeanLine);
+            lines.push(predictionLowerQuantileLine);
+            lines.push(predictionUpperQuantileLine);
+            lines.push(predictionSampleLine);
         });
-
-        console.log(allPredictions);
+        console.log(lines);
         lines.push(atomLine);
         lines.push(dotLine);
         lines.push(linkLine);
