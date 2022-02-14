@@ -16,7 +16,7 @@ let stage = "prod";
 //    assigns seconds and date
 function convertSecondsToDateAndTime(secondsSinceEpoch) {
     let date = new Date(secondsSinceEpoch*1000).toISOString().split('T');
-    return date[0] + " " + date[1].split('.')[0];
+    return date[0] + " " + ""; // to beginning of day
 }
 
 //reads in crypto data
@@ -80,7 +80,10 @@ exports.handler = async (event) => {
             //converts the seconds to date from epoch time
             let dateInSeconds = crypto.PriceTimeStamp;
             let date = new Date(dateInSeconds*1000);
-            let dateString = date.toISOString().split('T')[0];
+            let splitDate = date.toISOString().split('T');
+            let time =  splitDate[1].split('.')[0];
+            console.log(time);
+            let dateString = splitDate[0] + " " + time;
             xValues.push(dateString);
             count++;
         }
@@ -157,6 +160,12 @@ exports.handler = async (event) => {
             predictionXValues[indexOfTime] = currentDateAndTime;
             currentEndTimeInSeconds += secondsInADay;
         }
+        //Add real data
+        lines.push(atomLine);
+        lines.push(dotLine);
+        lines.push(linkLine);
+        lines.push(lunaLine);
+        lines.push(solLine);
 
 
         //The first Y
@@ -166,25 +175,10 @@ exports.handler = async (event) => {
         allPredictions.Items.forEach(function(prediction) {
             let currency = prediction.Currency;
 
-            if(currency == "ATOM")
-                initialY = yValuesATOM[yValuesATOM.length - 1];
-            else if(currency == "DOT")
-                initialY = yValuesDOT[yValuesDOT.length - 1];
-            else if(currency == "LINK")
-                initialY = yValuesLINK[yValuesLINK.length - 1];
-            else if(currency == "LUNA")
-                initialY = yValuesLUNA[yValuesLUNA.length - 1];
-            else if(currency == "SOL")
-                initialY = yValuesSOL[yValuesSOL.length - 1];
-
             let means = getData(prediction.Means);
-            means.unshift(initialY);
             let lowerQuantiles = getData(prediction.LowerQuantiles);
-            lowerQuantiles.unshift(initialY);
             let upperQuantiles = getData(prediction.UpperQuantiles);
-            upperQuantiles.unshift(initialY);
             let samples = getData(prediction.Samples);
-            samples.unshift(initialY);
 
             let predictionMeanLine = {
                 x: predictionXValues,
@@ -221,11 +215,6 @@ exports.handler = async (event) => {
             lines.push(predictionSampleLine);
         });
         console.log(lines);
-        lines.push(atomLine);
-        lines.push(dotLine);
-        lines.push(linkLine);
-        lines.push(lunaLine);
-        lines.push(solLine);
 
         let msg = {
             data : lines,

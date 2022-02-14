@@ -34,7 +34,7 @@
 <!--<div id="pieDiv"></div>-->
 <div class="container" style="border: 10px solid black;">
     <div class="row">
-        <div class="col" id="pieDiv">
+        <div class="col" id="pieDiv1">
             <b>SOL</b>
         </div>
         <div class="col" id="pieDiv2">
@@ -59,6 +59,9 @@
     //Open connection
     let connection = new WebSocket("wss://7dxr2k9a9b.execute-api.us-east-1.amazonaws.com/prod");
 
+    //Enables graph refresh
+    let dataRevision = 0;
+
     //Log connected response
     connection.onopen = function(event){
         console.log("Connected: " + JSON.stringify(event));
@@ -72,56 +75,23 @@
         let messageLowerCase = message.toLowerCase();
         if(messageLowerCase.includes("pie")) {
             let plotlyData = JSON.parse(message);
-            let valuesPie1 = plotlyData.data[0].values;
-            console.log(valuesPie1);
-            let valuesPie2 = plotlyData.data[1].values;
-            let valuesPie3 = plotlyData.data[2].values;
-            let valuesPie4 = plotlyData.data[3].values;
-            let valuesPie5 = plotlyData.data[4].values;
-            let labels = plotlyData.data[0].labels;
-            let type = plotlyData.data[0].type;
-            let pieLayout = plotlyData.layout;
 
-            var dataPie1 = [{
-                values: valuesPie1,
-                labels: labels,
-                type: type
-            }];
-            var dataPie1 = [{
-                values: valuesPie1,
-                labels: labels,
-                type: type
-            }];
-            var dataPie2 = [{
-                values: valuesPie2,
-                labels: labels,
-                type: type
-            }];
-            var dataPie3 = [{
-                values: valuesPie3,
-                labels: labels,
-                type: type
-            }];
-            var dataPie4 = [{
-                values: valuesPie4,
-                labels: labels,
-                type: type
-            }];
-            var dataPie5 = [{
-                values: valuesPie5,
-                labels: labels,
-                type: type
-            }];
+            for(let graphNum=0; graphNum < 5; ++graphNum){
+                let dataPie = [{
+                    values: plotlyData.data[graphNum].values,
+                    labels: plotlyData.data[0].labels,
+                    type: plotlyData.data[0].type
+                }];
 
-            var layout = {
-                height: 350,
-                width: 300
-            };
-            Plotly.react('pieDiv', dataPie1, layout);
-            Plotly.react('pieDiv2', dataPie2,layout);
-            Plotly.react('pieDiv3', dataPie3,layout);
-            Plotly.react('pieDiv4', dataPie4,layout);
-            Plotly.react('pieDiv5', dataPie5,layout);
+                let layout = {
+                    height: 350,
+                    width: 300,
+                    datarevision: dataRevision
+                };
+                Plotly.react('pieDiv' + (graphNum + 1), dataPie, layout);
+                ++dataRevision;
+                console.log("Plotting data for graph " + graphNum);
+            }
         } else if (messageLowerCase.includes("updatenumerical")) {
             let plotlyData = JSON.parse(message);
             let lines = plotlyData.data;
