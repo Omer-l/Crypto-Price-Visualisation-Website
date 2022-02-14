@@ -7,22 +7,15 @@ let awsRuntime = new AWS.SageMakerRuntime({});
 const ddb = new AWS.DynamoDB.DocumentClient({ region: 'us-east-1' });
 
 function wipeDDB(tableName) {
-    ddb.delete({
+    return ddb.delete({
         "TableName": tableName,
         "Key" : {
             "Id": 1
         }
-    }, function (err, data) {
-        if (err) {
-            console.log('FAIL:  Error deleting item from dynamodb - ' + err);
-        }
-        else {
-            console.log("DEBUG:  deleteItem worked. ");
-        }
-    });
+    }).promise();
 }
 
-async function writeEndpointData(currency, means, lowerQuantiles, upperQuantiles, samples) {
+async function writeEndpointData(means, lowerQuantiles, upperQuantiles, samples) {
 //first delete current row
     var tableName = "SyntheticEndpointData";
     await wipeDDB(tableName);
