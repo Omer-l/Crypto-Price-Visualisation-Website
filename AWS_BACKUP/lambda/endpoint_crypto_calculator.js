@@ -7,6 +7,15 @@ let awsRuntime = new AWS.SageMakerRuntime({});
 const ddb = new AWS.DynamoDB.DocumentClient({ region: 'us-east-1' });
 
 
+function wipeDDB(tableName, currency) {
+    return ddb.delete({
+        "TableName": tableName,
+        "Key" : {
+            "Currency": currency
+        }
+    }).promise();
+}
+
 //    assigns seconds and date
 function convertSecondsToDateAndTime(secondsSinceEpoch) {
     let date = new Date(secondsSinceEpoch*1000).toISOString().split('T');
@@ -23,10 +32,11 @@ function readCryptoData() {
     return ddb.scan(params).promise();
 }
 
-function writeEndpointData(currency, means, lowerQuantiles, upperQuantiles, samples) {
-
+async function writeEndpointData(currency, means, lowerQuantiles, upperQuantiles, samples) {
+    let tableName = 'EndpointPredictions';
+    await wipeDDB(tableName, currency); // first wipe the matching row
     var params = {
-        TableName: 'EndpointPredictions',
+        TableName: tableName,
         Item: {
             'Currency' : currency,
             'Means' : means,
@@ -35,6 +45,7 @@ function writeEndpointData(currency, means, lowerQuantiles, upperQuantiles, samp
             'Samples' : samples,
         }
     };
+
     return ddb.put(params).promise();
 }
 
