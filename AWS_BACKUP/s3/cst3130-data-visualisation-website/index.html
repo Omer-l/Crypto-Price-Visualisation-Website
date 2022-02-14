@@ -16,7 +16,7 @@
     <div class="collapse" id="navbarToggleExternalContent">
         <div class="bg-dark p-4">
             <h5 class="text-white h4">Data Visualisation Website</h5>
-            <span class="text-muted">Utilised: Amazon Web Services, SageMaker DeepAR, Lambda, S3 static web hosting, DynamoDB, CloudWatch, API Gateway</span>
+            <span class="text-muted">Utilised: Amazon Web Services, SageMaker (DeepAR), Lambda, S3 static web hosting, DynamoDB, CloudWatch, API Gateway, Comprehend</span>
         </div>
     </div>
     <nav class="navbar navbar-dark bg-dark">
@@ -26,11 +26,13 @@
     </nav>
 </div>
 <p style="border-style: solid; width: 500px; border-width: 1px; max-height: 300px; overflow-y: auto" id="messages"></p>
-<h1>Numerical Data</h1>
-<div id="numericalGraphDiv"></div>
+<h1>Crypto Currency Prices and Predictions</h1>
+<div style="border: 10px solid black">
+    <div class="container" id="numericalGraphDiv" ></div>
+</div>
 <h1>Sentiment Analysis</h1>
 <!--<div id="pieDiv"></div>-->
-<div class="container">
+<div class="container" style="border: 10px solid black;">
     <div class="row">
         <div class="col" id="pieDiv">
             <b>SOL</b>
@@ -52,7 +54,7 @@
     </div>
 </div>
 <h1>Synthetic Data</h1>
-<iframe id="igraph" scrolling="no" style="border:none;" seamless="seamless" src="https://chart-studio.plotly.com/~omerka1/0.embed" height="525" width="100%"></iframe>
+<iframe id="igraph" scrolling="no" style="border: 10px solid black;" seamless="seamless" src="https://chart-studio.plotly.com/~omerka1/0.embed" height="525" width="100%"></iframe>
 <script>
     //Open connection
     let connection = new WebSocket("wss://7dxr2k9a9b.execute-api.us-east-1.amazonaws.com/prod");
@@ -115,28 +117,43 @@
                 height: 350,
                 width: 300
             };
-            Plotly.newPlot('pieDiv', dataPie1, layout);
-            Plotly.newPlot('pieDiv2', dataPie2,layout);
-            Plotly.newPlot('pieDiv3', dataPie3,layout);
-            Plotly.newPlot('pieDiv4', dataPie4,layout);
-            Plotly.newPlot('pieDiv5', dataPie5,layout);
+            Plotly.react('pieDiv', dataPie1, layout);
+            Plotly.react('pieDiv2', dataPie2,layout);
+            Plotly.react('pieDiv3', dataPie3,layout);
+            Plotly.react('pieDiv4', dataPie4,layout);
+            Plotly.react('pieDiv5', dataPie5,layout);
         } else if (messageLowerCase.includes("updatenumerical")) {
             let plotlyData = JSON.parse(message);
             let lines = plotlyData.data;
-            let layout = {
-                xaxis: {
-                    autorange: true,
+
+            let yValuesATOM = [];
+            let yValuesDOT = [];
+            let yValuesLINK = [];
+            let yValuesLUNA = [];
+            let yValuesSOL = [];
+            for(let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+                let line = lines[lineIndex];
+
+                if(line.name == 'ATOM') {
+                    yValuesATOM = line.y;
                 }
-            };
+                else if(line.name == 'DOT') {
+                    yValuesDOT = line.y;
+                }
+                else if(line.name == 'LINK') {
+                    let yValuesLINK = line.y;
+                }
+                else if(line.name == 'LUNA') {
+                    let yValuesLUNA = line.y;
+                }
+                else if(line.name == 'SOL') {
+                    let yValuesSOL = line.y;
+                }
+            }
             let xValues = lines[0].x;
-            let yValuesSOL = lines[0].y;
-            let yValuesATOM = lines[1].y;
-            let yValuesLUNA = lines[2].y;
-            let yValuesDOT = lines[3].y;
-            let yValuesLINK = lines[4].y;
             Plotly.extendTraces('numericalGraphDiv', {
                 x: [xValues,  xValues, xValues, xValues, xValues],
-                y: [yValuesSOL, yValuesATOM, yValuesLUNA, yValuesDOT, yValuesLINK]
+                y: [yValuesATOM, yValuesDOT, yValuesLINK, yValuesLUNA, yValuesSOL]
             }, [0, 1, 2, 3, 4]);
             console.log("LINEOINS: " + JSON.stringify(lines));
 
@@ -148,7 +165,7 @@
                     autorange: true,
                 }
             };
-            Plotly.newPlot('numericalGraphDiv', lines, layout);
+            Plotly.react('numericalGraphDiv', lines, layout);
         } else if(messageLowerCase.includes("tweet")) { //request update on pie charts
             updatePieChart();
             document.getElementById("messages").innerHTML += ("Server message: " + message + "<br>" + "Refreshing the pie charts..." + "<br>");

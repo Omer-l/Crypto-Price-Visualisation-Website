@@ -57,7 +57,7 @@ var Put;
         return SageMakerData;
     }());
     var currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    var numberOfPricesToGET = getHourSince12Yesterday(); //gets the number of hours since 12:00 yesterday for the number of updates.
+    var numberOfPricesToGET = getHourSince00(); //gets the number of hours since 12:00 yesterday for the number of updates.
     var dynamoDBBatch = [];
     //Class that wraps cryptoCompare web service
     var cryptoCompare = /** @class */ (function () {
@@ -84,15 +84,11 @@ var Put;
         var date = new Date(secondsSinceEpoch * 1000).toISOString().split('T');
         return date[0] + " " + date[1].split('.')[0];
     }
-    //Gets hours from 12:00 to next day 12:00
-    function getHourSince12Yesterday() {
+    //Gets hours from 00:00 to next day 00:00
+    function getHourSince00() {
         var timeNowInMS = new Date();
         var hourNow = timeNowInMS.getHours();
-        var hoursSince12Yesterday = hourNow - 12;
-        if (hoursSince12Yesterday < 0)
-            return 24 + hoursSince12Yesterday;
-        else
-            return hoursSince12Yesterday;
+        return hourNow;
     }
     //Gets the historical data for a range of dates.
     function getHistoricalData() {

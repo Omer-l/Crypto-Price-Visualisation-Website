@@ -6,6 +6,16 @@ namespace Put {
     //To connect to Amazon Web Services DynamoDB database
     let AWS = require("aws-sdk");
 
+    AWS.config.update({
+        region: "us-east-1",
+        endpoint: "https://dynamodb.us-east-1.amazonaws.com",
+        accessKeyId: pH.apiKeys.awsAccessKeyId,
+        secretAccessKey: pH.apiKeys.awsSecretAccessKey,
+        sessionToken: pH.apiKeys.awsSessionToken
+    });
+    //Create new DocumentClient
+    let dynamoDB = new AWS.DynamoDB({maxRetries: 13, retryDelayOptions: {base: 200}});
+
 //Used to writing to data json file
     const fs = require("fs");
 
@@ -68,7 +78,7 @@ namespace Put {
     }
 
     const currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    const numberOfPricesToGET = 600;
+    const numberOfPricesToGET = 100;
     let dynamoDBBatch: Array<DynamoDBItem> = [];
 
 //Class that wraps cryptoCompare web service
@@ -190,16 +200,6 @@ namespace Put {
         }
 
         /* Write to DynamoDB table */
-
-        AWS.config.update({
-            region: "us-east-1",
-            endpoint: "https://dynamodb.us-east-1.amazonaws.com",
-            accessKeyId: pH.apiKeys.awsAccessKeyId,
-            secretAccessKey: pH.apiKeys.awsSecretAccessKey,
-            sessionToken: pH.apiKeys.awsSessionToken
-        });
-        //Create new DocumentClient
-        let dynamoDB = new AWS.DynamoDB({maxRetries: 13, retryDelayOptions: {base: 200}});
 
         let batchNumber = 0;
         let rowNumber = 25 * batchNumber;

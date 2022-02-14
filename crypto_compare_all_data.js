@@ -41,6 +41,15 @@ var Put;
     var pH = require('./passwordsHolder');
     //To connect to Amazon Web Services DynamoDB database
     var AWS = require("aws-sdk");
+    AWS.config.update({
+        region: "us-east-1",
+        endpoint: "https://dynamodb.us-east-1.amazonaws.com",
+        accessKeyId: pH.apiKeys.awsAccessKeyId,
+        secretAccessKey: pH.apiKeys.awsSecretAccessKey,
+        sessionToken: pH.apiKeys.awsSessionToken
+    });
+    //Create new DocumentClient
+    var dynamoDB = new AWS.DynamoDB({ maxRetries: 13, retryDelayOptions: { base: 200 } });
     //Used to writing to data json file
     var fs = require("fs");
     //Time library that we will use to increment dates.
@@ -57,7 +66,7 @@ var Put;
         return SageMakerData;
     }());
     var currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    var numberOfPricesToGET = 600;
+    var numberOfPricesToGET = 100;
     var dynamoDBBatch = [];
     //Class that wraps cryptoCompare web service
     var cryptoCompareAllData = /** @class */ (function () {
@@ -87,7 +96,7 @@ var Put;
     //Gets the historical data for a range of dates.
     function getHistoricalData() {
         return __awaiter(this, void 0, void 0, function () {
-            var _loop_1, index, dynamoDB, batchNumber, rowNumber, batch, row, item, params;
+            var _loop_1, index, batchNumber, rowNumber, batch, row, item, params;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -186,15 +195,6 @@ var Put;
                         index++;
                         return [3 /*break*/, 1];
                     case 4:
-                        /* Write to DynamoDB table */
-                        AWS.config.update({
-                            region: "us-east-1",
-                            endpoint: "https://dynamodb.us-east-1.amazonaws.com",
-                            accessKeyId: pH.apiKeys.awsAccessKeyId,
-                            secretAccessKey: pH.apiKeys.awsSecretAccessKey,
-                            sessionToken: pH.apiKeys.awsSessionToken
-                        });
-                        dynamoDB = new AWS.DynamoDB({ maxRetries: 13, retryDelayOptions: { base: 200 } });
                         batchNumber = 0;
                         rowNumber = 25 * batchNumber;
                         for (batchNumber = 0; batchNumber < dynamoDBBatch.length && dynamoDBBatch[rowNumber] != undefined; batchNumber++) {

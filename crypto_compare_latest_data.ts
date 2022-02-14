@@ -68,7 +68,7 @@ namespace Put {
     }
 
     const currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    const numberOfPricesToGET = getHourSince12Yesterday(); //gets the number of hours since 12:00 yesterday for the number of updates.
+    const numberOfPricesToGET = getHourSince00(); //gets the number of hours since 12:00 yesterday for the number of updates.
     let dynamoDBBatch: Array<DynamoDBItem> = [];
 
 //Class that wraps cryptoCompare web service
@@ -96,17 +96,11 @@ namespace Put {
         return date[0] + " " + date[1].split('.')[0];
     }
 
-    //Gets hours from 12:00 to next day 12:00
-    function getHourSince12Yesterday() {
+    //Gets hours from 00:00 to next day 00:00
+    function getHourSince00() {
         let timeNowInMS = new Date();
-
         let hourNow = timeNowInMS.getHours();
-        let hoursSince12Yesterday = hourNow - 12;
-
-        if(hoursSince12Yesterday < 0)
-            return 24 + hoursSince12Yesterday;
-        else
-            return hoursSince12Yesterday;
+        return hourNow;
     }
 
 //Gets the historical data for a range of dates.

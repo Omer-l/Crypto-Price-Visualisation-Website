@@ -1,17 +1,11 @@
 
-function getHourSince12Yesterday() {
+function getHourSince00() {
     let timeNowInMS = new Date();
-
     let hourNow = timeNowInMS.getHours();
-    let hoursSince12Yesterday = hourNow - 12;
-
-    if(hoursSince12Yesterday < 0)
-        return 24 + hoursSince12Yesterday;
-    else
-        return hoursSince12Yesterday;
+    return hourNow;
 }
 
-console.log(getHourSince12Yesterday());
+console.log(getHourSince00());
 
 function convertSecondsToDateAndTime(secondsSinceEpoch) {
     let date = new Date(secondsSinceEpoch*1000).toISOString().split('T');
