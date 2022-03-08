@@ -16,6 +16,21 @@
 
 </head>
 <body>
+<div class="pos-f-t">
+    <div id="navbarToggleExternalContent">
+        <div class="bg-dark p-4">
+            <h5 class="text-white h4">Data Visualisation Website</h5>
+            <span class="text-muted">Utilised: Amazon Web Services, SageMaker (DeepAR), Lambda, S3 static web hosting, DynamoDB, CloudWatch, API Gateway, Comprehend</span>
+        </div>
+    </div>
+    <nav class="navbar navbar-dark bg-dark">
+<!--        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent" aria-expanded="false" aria-label="Toggle navigation">-->
+<!--            <span class="navbar-toggler-icon"></span>-->
+<!--        </button>-->
+    </nav>
+</div>
+<!--NOTIFICATION MESSAGES-->
+<p style="border-style: solid; width: 500px; border-width: 1px; max-height: 300px; overflow-y: auto" id="messages"></p>
 <!-- Menu Container -->
 <div class="w3-container" id="menu">
     <div class="w3-content" style="max-width:100%">
@@ -38,75 +53,42 @@
             <a href="javascript:void(0)" onclick="openMenu(event, 'Sol');">
                 <div class="w3-col tablink">SOL</div>
             </a>
+            <a href="javascript:void(0)" onclick="openMenu(event, 'Synthetic');">
+                <div class="w3-col tablink">SYNTH</div>
+            </a>
         </div>
 
         <div id="Atom" class="w3-container menu w3-padding-48 w3-card">
             <div class="container" id="atomGraphDiv" ></div>
+            <div class="container" id="pieDiv4"></div>
         </div>
 
         <div id="Dot" class="w3-container menu w3-padding-48 w3-card">
             <div class="container" id="dotGraphDiv" ></div>
+            <div class="container" id="pieDiv5"></div>
         </div>
 
         <div id="Link" class="w3-container menu w3-padding-48 w3-card">
             <div class="container" id="linkGraphDiv" ></div>
+            <div class="container" id="pieDiv2"></div>
         </div>
 
         <div id="Luna" class="w3-container menu w3-padding-48 w3-card">
             <div class="container" id="lunaGraphDiv" ></div>
+            <div class="container" id="pieDiv3"></div>
         </div>
 
         <div id="Sol" class="w3-container menu w3-padding-48 w3-card">
             <div class="container" id="solGraphDiv" ></div>
+            <div class="container" id="pieDiv1"></div>
+        </div>
+
+        <div id="Synthetic" class="w3-container menu w3-padding-48 w3-card">
+            <iframe id="igraph" scrolling="no" seamless="seamless" src="https://chart-studio.plotly.com/~omerka1/0.embed" height="525" width="100%"></iframe>
         </div>
     </div>
 </div>
-<div class="pos-f-t">
-    <div id="navbarToggleExternalContent">
-        <div class="bg-dark p-4">
-            <h5 class="text-white h4">Data Visualisation Website</h5>
-            <span class="text-muted">Utilised: Amazon Web Services, SageMaker (DeepAR), Lambda, S3 static web hosting, DynamoDB, CloudWatch, API Gateway, Comprehend</span>
-        </div>
-    </div>
-    <nav class="navbar navbar-dark bg-dark">
-<!--        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent" aria-expanded="false" aria-label="Toggle navigation">-->
-<!--            <span class="navbar-toggler-icon"></span>-->
-<!--        </button>-->
-    </nav>
-</div>
-<p style="border-style: solid; width: 500px; border-width: 1px; max-height: 300px; overflow-y: auto" id="messages"></p>
-<!--Numerical-->
-<h1>Crypto Currency Prices and Predictions</h1>
-<div class="container" id="numericalGraphDiv" ></div>
-<!--Sentiment Analysis-->
-<h1>Sentiment Analysis</h1>
-<div class="container" style="border: 10px solid black;">
-    <div class="row">
-        <div class="col" id="pieDiv1">
-            <b>SOL</b>
-        </div>
-        <div class="col" id="pieDiv2">
-            <b>LINK</b>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col" id="pieDiv3">
-            <b>LUNA</b>
-        </div>
-        <div class="col" id="pieDiv4">
-            <b>ATOM</b>
-        </div>
-        <div class="col" id="pieDiv5">
-            <b>DOT</b>
-        </div>
-    </div>
-</div>
-<!--Synthetic Data-->
-<h1>Synthetic Data</h1>
-<iframe id="igraph" scrolling="no" style="border: 10px solid black;" seamless="seamless" src="https://chart-studio.plotly.com/~omerka1/0.embed" height="525" width="100%"></iframe>
 <script>
-
-
     // Tabbed Menu
     function openMenu(evt, menuName) {
         var i, x, tablinks;
@@ -154,7 +136,8 @@
                 let layout = {
                     height: 350,
                     width: 300,
-                    datarevision: dataRevision
+                    datarevision: dataRevision,
+                    title:  "Sentiment Analysis",
                 };
                 Plotly.react('pieDiv' + (graphNum + 1), dataPie, layout);
                 ++dataRevision;
@@ -198,20 +181,14 @@
         } else if (messageLowerCase.includes("numerical")) {
             let plotlyData = JSON.parse(message);
             let lines = plotlyData.data;
-            let layout = {
-                xaxis: {
-                    autorange: true,
-                }
-            };
-            Plotly.react('numericalGraphDiv', lines, layout);
-
+            //Plots the data
             let currencies = ["atom", "dot", "link", "luna", "sol"];
-            console.log(lines)
+
             for(let graphNumber = 0; graphNumber < 5; graphNumber++) { //for now no predictions
                 let currency = currencies[graphNumber];
                 let divIdName = currency + "GraphDiv";
                 let lineToPlot = lines[graphNumber];
-                Plotly.react(divIdName, lineToPlot);
+                Plotly.react(divIdName, lineToPlot, layout);
             }
         } else if(messageLowerCase.includes("tweet")) { //request update on pie charts
             updatePieChart();
