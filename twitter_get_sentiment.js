@@ -49,7 +49,7 @@ var Twitter_Sentiment_Scanner;
                 'description',
             ],
             'max_results': [
-                '10',
+                '90',
             ]
         }).then(function (val) {
             var tweets = JSON.parse(JSON.stringify(val.data['data'])); //holds tweets

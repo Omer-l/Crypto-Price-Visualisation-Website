@@ -10,28 +10,76 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <!-- Bootstrap CSS -->
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<!--   W3Schools CSS-->
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inconsolata">
+
 </head>
 <body>
+<!-- Menu Container -->
+<div class="w3-container" id="menu">
+    <div class="w3-content" style="max-width:100%">
+
+        <h5 class="w3-center w3-padding-48"><span class="w3-tag w3-wide">Crypto List</span></h5>
+
+        <div class="w3-row w3-center w3-card w3-padding">
+            <a href="javascript:void(0)" onclick="openMenu(event, 'Atom');" id="myLink">
+                <div class="w3-col tablink">ATOM</div>
+            </a>
+            <a href="javascript:void(0)" onclick="openMenu(event, 'Dot');">
+                <div class="w3-col tablink">DOT</div>
+            </a>
+            <a href="javascript:void(0)" onclick="openMenu(event, 'Link');">
+                <div class="w3-col tablink">LINK</div>
+            </a>
+            <a href="javascript:void(0)" onclick="openMenu(event, 'Luna');">
+                <div class="w3-col tablink">LUNA</div>
+            </a>
+            <a href="javascript:void(0)" onclick="openMenu(event, 'Sol');">
+                <div class="w3-col tablink">SOL</div>
+            </a>
+        </div>
+
+        <div id="Atom" class="w3-container menu w3-padding-48 w3-card">
+            <div class="container" id="atomGraphDiv" ></div>
+        </div>
+
+        <div id="Dot" class="w3-container menu w3-padding-48 w3-card">
+            <div class="container" id="dotGraphDiv" ></div>
+        </div>
+
+        <div id="Link" class="w3-container menu w3-padding-48 w3-card">
+            <div class="container" id="linkGraphDiv" ></div>
+        </div>
+
+        <div id="Luna" class="w3-container menu w3-padding-48 w3-card">
+            <div class="container" id="lunaGraphDiv" ></div>
+        </div>
+
+        <div id="Sol" class="w3-container menu w3-padding-48 w3-card">
+            <div class="container" id="solGraphDiv" ></div>
+        </div>
+    </div>
+</div>
 <div class="pos-f-t">
-    <div class="collapse" id="navbarToggleExternalContent">
+    <div id="navbarToggleExternalContent">
         <div class="bg-dark p-4">
             <h5 class="text-white h4">Data Visualisation Website</h5>
             <span class="text-muted">Utilised: Amazon Web Services, SageMaker (DeepAR), Lambda, S3 static web hosting, DynamoDB, CloudWatch, API Gateway, Comprehend</span>
         </div>
     </div>
     <nav class="navbar navbar-dark bg-dark">
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+<!--        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent" aria-expanded="false" aria-label="Toggle navigation">-->
+<!--            <span class="navbar-toggler-icon"></span>-->
+<!--        </button>-->
     </nav>
 </div>
 <p style="border-style: solid; width: 500px; border-width: 1px; max-height: 300px; overflow-y: auto" id="messages"></p>
+<!--Numerical-->
 <h1>Crypto Currency Prices and Predictions</h1>
-<div style="border: 10px solid black">
-    <div class="container" id="numericalGraphDiv" ></div>
-</div>
+<div class="container" id="numericalGraphDiv" ></div>
+<!--Sentiment Analysis-->
 <h1>Sentiment Analysis</h1>
-<!--<div id="pieDiv"></div>-->
 <div class="container" style="border: 10px solid black;">
     <div class="row">
         <div class="col" id="pieDiv1">
@@ -53,9 +101,29 @@
         </div>
     </div>
 </div>
+<!--Synthetic Data-->
 <h1>Synthetic Data</h1>
 <iframe id="igraph" scrolling="no" style="border: 10px solid black;" seamless="seamless" src="https://chart-studio.plotly.com/~omerka1/0.embed" height="525" width="100%"></iframe>
 <script>
+
+
+    // Tabbed Menu
+    function openMenu(evt, menuName) {
+        var i, x, tablinks;
+        x = document.getElementsByClassName("menu");
+        for (i = 0; i < x.length; i++) { //make all of them no display
+            x[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablink");
+        for (i = 0; i < x.length; i++) { //take off active color
+            tablinks[i].className = tablinks[i].className.replace(" w3-dark-grey", "");
+        }
+        document.getElementById(menuName).style.display = "block";
+        evt.currentTarget.firstElementChild.className += " w3-dark-grey";
+    }
+    document.getElementById("myLink").click();
+
+
     //Open connection
     let connection = new WebSocket("wss://7dxr2k9a9b.execute-api.us-east-1.amazonaws.com/prod");
 
@@ -136,6 +204,15 @@
                 }
             };
             Plotly.react('numericalGraphDiv', lines, layout);
+
+            let currencies = ["atom", "dot", "link", "luna", "sol"];
+            console.log(lines)
+            for(let graphNumber = 0; graphNumber < 5; graphNumber++) { //for now no predictions
+                let currency = currencies[graphNumber];
+                let divIdName = currency + "GraphDiv";
+                let lineToPlot = lines[graphNumber];
+                Plotly.react(divIdName, lineToPlot);
+            }
         } else if(messageLowerCase.includes("tweet")) { //request update on pie charts
             updatePieChart();
             document.getElementById("messages").innerHTML += ("Server message: " + message + "<br>" + "Refreshing the pie charts..." + "<br>");

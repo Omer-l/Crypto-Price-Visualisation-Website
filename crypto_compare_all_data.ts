@@ -13,8 +13,8 @@ namespace Put {
         secretAccessKey: pH.apiKeys.awsSecretAccessKey,
         sessionToken: pH.apiKeys.awsSessionToken
     });
-    //Create new DocumentClient
-    let dynamoDB = new AWS.DynamoDB({maxRetries: 13, retryDelayOptions: {base: 200}});
+//Create new DocumentClient
+let dynamoDB = new AWS.DynamoDB({maxRetries: 13, retryDelayOptions: {base: 200}});
 
 //Used to writing to data json file
     const fs = require("fs");
@@ -78,7 +78,7 @@ namespace Put {
     }
 
     const currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    const numberOfPricesToGET = 30;
+    const numberOfPricesToGET = 100;
     let dynamoDBBatch: Array<DynamoDBItem> = [];
 
 //Class that wraps cryptoCompare web service
@@ -145,7 +145,7 @@ namespace Put {
                 let trainStart = convertSecondsToDateAndTime(secondsSinceEpochTrain);
                 let endpointStart = convertSecondsToDateAndTime(secondsSinceEpochEndpoint);
                 sageMakerTrain.start = trainStart;
-                sageMakerEndpoint.start = endpointStart;
+                sageMakerEndpoint.start = trainStart; //both should have the same starting date.
 
                 cryptoData.forEach((crypto, index) => {
                     console.log(crypto);

@@ -63,7 +63,7 @@ for(let index = 0; index < currencies.length; index++) {
             'description',
         ],
         'max_results': [
-            '10',
+            '90',
         ]
     }).then((val) => {
         let tweets = JSON.parse(JSON.stringify(val.data['data'])); //holds tweets

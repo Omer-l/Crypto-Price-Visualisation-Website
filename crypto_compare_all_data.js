@@ -66,7 +66,7 @@ var Put;
         return SageMakerData;
     }());
     var currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    var numberOfPricesToGET = 30;
+    var numberOfPricesToGET = 100;
     var dynamoDBBatch = [];
     //Class that wraps cryptoCompare web service
     var cryptoCompareAllData = /** @class */ (function () {
@@ -134,7 +134,7 @@ var Put;
                                         trainStart = convertSecondsToDateAndTime(secondsSinceEpochTrain);
                                         endpointStart = convertSecondsToDateAndTime(secondsSinceEpochEndpoint);
                                         sageMakerTrain.start = trainStart;
-                                        sageMakerEndpoint.start = endpointStart;
+                                        sageMakerEndpoint.start = trainStart; //both should have the same starting date.
                                         cryptoData.forEach(function (crypto, index) {
                                             console.log(crypto);
                                             if (data_1 == undefined) {
