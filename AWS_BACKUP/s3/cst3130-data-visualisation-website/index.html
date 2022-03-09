@@ -13,49 +13,45 @@
 <!--   W3Schools CSS-->
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inconsolata">
-
+    <style>
+        #pieDiv1, #pieDiv2, #pieDiv3, #pieDiv4, #pieDiv5
+        {
+            padding-left: 450px;
+        }
+        #atomGraphDiv, #dotGraphDiv, #linkGraphDiv, #lunaGraphDiv, #solGraphDiv
+        {
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
-<div class="pos-f-t">
-    <div id="navbarToggleExternalContent">
-        <div class="bg-dark p-4">
-            <h5 class="text-white h4">Data Visualisation Website</h5>
-            <span class="text-muted">Utilised: Amazon Web Services, SageMaker (DeepAR), Lambda, S3 static web hosting, DynamoDB, CloudWatch, API Gateway, Comprehend</span>
-        </div>
-    </div>
-    <nav class="navbar navbar-dark bg-dark">
-<!--        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent" aria-expanded="false" aria-label="Toggle navigation">-->
-<!--            <span class="navbar-toggler-icon"></span>-->
-<!--        </button>-->
-    </nav>
-</div>
 <!--NOTIFICATION MESSAGES-->
 <p style="border-style: solid; width: 500px; border-width: 1px; max-height: 300px; overflow-y: auto" id="messages"></p>
 <!-- Menu Container -->
 <div class="w3-container" id="menu">
     <div class="w3-content" style="max-width:100%">
 
-        <h5 class="w3-center w3-padding-48"><span class="w3-tag w3-wide">Crypto List</span></h5>
+        <h1 class="w3-center w3-padding-48"><span class="w3-tag w3-wide">Crypto Data Visualisation</span></h1>
 
         <div class="w3-row w3-center w3-card w3-padding">
-            <a href="javascript:void(0)" onclick="openMenu(event, 'Atom');" id="myLink">
+            <button class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="openMenu(event, 'Atom');" id="myLink">
                 <div class="w3-col tablink">ATOM</div>
-            </a>
-            <a href="javascript:void(0)" onclick="openMenu(event, 'Dot');">
+            </button>
+            <button class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="openMenu(event, 'Dot');">
                 <div class="w3-col tablink">DOT</div>
-            </a>
-            <a href="javascript:void(0)" onclick="openMenu(event, 'Link');">
+            </button>
+            <button class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="openMenu(event, 'Link');">
                 <div class="w3-col tablink">LINK</div>
-            </a>
-            <a href="javascript:void(0)" onclick="openMenu(event, 'Luna');">
+            </button>
+            <button class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="openMenu(event, 'Luna');">
                 <div class="w3-col tablink">LUNA</div>
-            </a>
-            <a href="javascript:void(0)" onclick="openMenu(event, 'Sol');">
+            </button>
+            <button class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="openMenu(event, 'Sol');">
                 <div class="w3-col tablink">SOL</div>
-            </a>
-            <a href="javascript:void(0)" onclick="openMenu(event, 'Synthetic');">
+            </button>
+            <button class="btn btn-lg btn-primary" onclick="window.location.href='synthetic.html'">
                 <div class="w3-col tablink">SYNTH</div>
-            </a>
+            </button>
         </div>
 
         <div id="Atom" class="w3-container menu w3-padding-48 w3-card">
@@ -63,7 +59,7 @@
             <div class="container" id="pieDiv4"></div>
         </div>
 
-        <div id="Dot" class="w3-container menu w3-padding-48 w3-card">
+        <div id="Dot" class="w3-container menu w3-padding-48 ">
             <div class="container" id="dotGraphDiv" ></div>
             <div class="container" id="pieDiv5"></div>
         </div>
@@ -82,26 +78,23 @@
             <div class="container" id="solGraphDiv" ></div>
             <div class="container" id="pieDiv1"></div>
         </div>
-
-        <div id="Synthetic" class="w3-container menu w3-padding-48 w3-card">
-            <iframe id="igraph" scrolling="no" seamless="seamless" src="https://chart-studio.plotly.com/~omerka1/0.embed" height="525" width="100%"></iframe>
-        </div>
     </div>
 </div>
 <script>
+    const currencies = ["atom", "dot", "link", "luna", "sol"];
     // Tabbed Menu
-    function openMenu(evt, menuName) {
+    function openMenu(event, currencyName) {
         var i, x, tablinks;
         x = document.getElementsByClassName("menu");
         for (i = 0; i < x.length; i++) { //make all of them no display
             x[i].style.display = "none";
         }
-        tablinks = document.getElementsByClassName("tablink");
+        tablinks = document.getElementsByClassName("btn-primary");
         for (i = 0; i < x.length; i++) { //take off active color
-            tablinks[i].className = tablinks[i].className.replace(" w3-dark-grey", "");
+            tablinks[i].className = tablinks[i].className.replace("active", "");
         }
-        document.getElementById(menuName).style.display = "block";
-        evt.currentTarget.firstElementChild.className += " w3-dark-grey";
+        document.getElementById(currencyName).style.display = "block";
+        event.currentTarget.firstElementChild.className += " active";
     }
     document.getElementById("myLink").click();
 
@@ -141,7 +134,6 @@
                 };
                 Plotly.react('pieDiv' + (graphNum + 1), dataPie, layout);
                 ++dataRevision;
-                console.log("Plotting data for graph " + graphNum);
             }
         } else if (messageLowerCase.includes("updatenumerical")) {
             let plotlyData = JSON.parse(message);
@@ -172,23 +164,28 @@
                 }
             }
             let xValues = lines[0].x;
-            Plotly.extendTraces('numericalGraphDiv', {
-                x: [xValues,  xValues, xValues, xValues, xValues],
-                y: [yValuesATOM, yValuesDOT, yValuesLINK, yValuesLUNA, yValuesSOL]
-            }, [0, 1, 2, 3, 4]);
+
+            for(let currencyNumber = 0; currencyNumber < currencies.length; currencyNumber++) {
+                let currency = currencies[currencyNumber];
+                let graphDivIdName = currency + "GraphDiv";
+                Plotly.extendTraces(graphDivIdName, {
+                    x: [xValues],
+                    y: [yValuesATOM]
+                }, [0]);
+            }
             console.log("LINEOINS: " + JSON.stringify(lines));
 
         } else if (messageLowerCase.includes("numerical")) {
+            console.log("Plotting data for graphs");
             let plotlyData = JSON.parse(message);
             let lines = plotlyData.data;
             //Plots the data
-            let currencies = ["atom", "dot", "link", "luna", "sol"];
 
             for(let graphNumber = 0; graphNumber < 5; graphNumber++) { //for now no predictions
                 let currency = currencies[graphNumber];
                 let divIdName = currency + "GraphDiv";
                 let lineToPlot = lines[graphNumber];
-                Plotly.react(divIdName, lineToPlot, layout);
+                Plotly.react(divIdName, lineToPlot);
             }
         } else if(messageLowerCase.includes("tweet")) { //request update on pie charts
             updatePieChart();
