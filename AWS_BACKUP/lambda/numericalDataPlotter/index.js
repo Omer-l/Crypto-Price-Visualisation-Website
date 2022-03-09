@@ -55,6 +55,7 @@ function getData(dataString) {
 }
 
 exports.handler = async (event) => {
+    let connectionId = event.requestContext.connectionId;
     //Holds the main line, predictions (Lower Quartile, mean, Upper Quartile)
     let lines = [];
     //basic X values for time plot
@@ -82,7 +83,6 @@ exports.handler = async (event) => {
             let date = new Date(dateInSeconds*1000);
             let splitDate = date.toISOString().split('T');
             let time =  splitDate[1].split('.')[0];
-            console.log(time);
             let dateString = splitDate[0] + " " + time;
             xValues.push(dateString);
             count++;
@@ -109,7 +109,6 @@ exports.handler = async (event) => {
             x: xValues,
             y: yValuesATOM,
             mode: 'lines',
-            legendgroup: "ATOMGroup",
             name: 'ATOM'
         };
         //get predictions for ATOM
@@ -118,7 +117,6 @@ exports.handler = async (event) => {
         var dotLine = {
             x: xValues,
             y: yValuesDOT,
-            legendgroup: "DOTGroup",
             mode: 'lines',
             name: 'DOT'
         };
@@ -127,7 +125,6 @@ exports.handler = async (event) => {
         var linkLine = {
             x: xValues,
             y: yValuesLINK,
-            legendgroup: "LINKGroup",
             mode: 'lines',
             name: 'LINK'
         };
@@ -136,7 +133,6 @@ exports.handler = async (event) => {
         var lunaLine = {
             x: xValues,
             y: yValuesLUNA,
-            legendgroup: "LUNAGroup",
             mode: 'lines',
             name: 'LUNA'
         };
@@ -146,7 +142,6 @@ exports.handler = async (event) => {
             x: xValues,
             y: yValuesSOL,
             mode: 'lines',
-            legendgroup: "SOLGroup",
             name: 'SOL'
         };
 
@@ -161,11 +156,11 @@ exports.handler = async (event) => {
             currentEndTimeInSeconds += secondsInADay;
         }
         //Add real data
-        lines.push(atomLine);
-        lines.push(dotLine);
-        lines.push(linkLine);
-        lines.push(lunaLine);
-        lines.push(solLine);
+        lines.push([atomLine]);
+        lines.push([dotLine]);
+        lines.push([linkLine]);
+        lines.push([lunaLine]);
+        lines.push([solLine]);
 
 
         //The first Y
@@ -185,36 +180,42 @@ exports.handler = async (event) => {
                 y: means,
                 mode: 'lines',
                 name: 'Mean',
-                legendgroup: currency + "Group",
             };
             let predictionLowerQuantileLine = {
                 x: predictionXValues,
                 y: lowerQuantiles,
                 mode: 'lines',
                 name: 'Lower Quantile',
-                legendgroup: currency + "Group"
             };
             let predictionUpperQuantileLine = {
                 x: predictionXValues,
                 y: upperQuantiles,
                 mode: 'lines',
                 name: 'Upper Quantile',
-                legendgroup: currency + "Group"
             };
             let predictionSampleLine = {
                 x: predictionXValues,
                 y: samples,
                 mode: 'lines',
                 name: 'Sample',
-                legendgroup: currency + "Group",
             };
+            let indexOfLine = 0;
+            if(currency == "ATOM")
+                indexOfLine = 0;
+            else if(currency == "DOT")
+                indexOfLine = 1;
+            else if(currency == "LINK")
+                indexOfLine = 2;
+            else if(currency == "LUNA")
+                indexOfLine = 3;
+            else if(currency == "SOL")
+                indexOfLine = 4;
             //adds to lines array
-            lines.push(predictionMeanLine);
-            lines.push(predictionLowerQuantileLine);
-            lines.push(predictionUpperQuantileLine);
-            lines.push(predictionSampleLine);
+            lines[indexOfLine].push(predictionMeanLine);
+            lines[indexOfLine].push(predictionLowerQuantileLine);
+            lines[indexOfLine].push(predictionUpperQuantileLine);
+            lines[indexOfLine].push(predictionSampleLine);
         });
-        console.log(lines);
 
         let msg = {
             data : lines,
@@ -222,9 +223,8 @@ exports.handler = async (event) => {
         };
 
         let msgString = JSON.stringify(msg);
-        // console.log("HELLOW: " + msgString);
         //Get promises to send messages to connected clients
-        let sendMsgPromises = await ws.getSendMessagePromises(msgString, domainName, stage);
+        let sendMsgPromises = await ws.getSendMessagePromises(msgString, domainName, stage, connectionId);
         //Execute promises
         await Promise.all(sendMsgPromises);
 
