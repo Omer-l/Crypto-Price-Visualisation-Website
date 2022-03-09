@@ -11,7 +11,7 @@ exports.handler = async (event) => {
     //Parameters for deleting connection ID from DynamoDB
     let params = {
         TableName: "WebSocketClients",
-        Item: {
+        Key: {
             ConnectionId: connId
         }
     };
