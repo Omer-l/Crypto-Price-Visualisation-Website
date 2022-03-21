@@ -8,18 +8,9 @@ const ddb = new AWS.DynamoDB.DocumentClient({ region: 'us-east-1' });
 
 //Create instance of Comprehend
 let comprehend = new AWS.Comprehend();
-
-//Authentication details for Plotly
-const PLOTLY_USERNAME = 'omerka1';
-const PLOTLY_KEY = 'CngH9Ebp1Ee7SKaVJVPY';
-
-
 //Hard coded domain name and stage - use when pushing messages from server to client
 let domainName = "7dxr2k9a9b.execute-api.us-east-1.amazonaws.com";
 let stage = "prod";
-
-//Initialize Plotly with user details.
-let plotly = require('plotly')(PLOTLY_USERNAME, PLOTLY_KEY);
 
 // Function readTwitterData
 // Reads Twitter data from the DynamoDb table sentimentData
@@ -82,35 +73,12 @@ exports.handler = async (event) => {
             height: 400,
             width: 500
         }};
-    let msgString = JSON.stringify(msg);
-    console.log("HELLOW: " + msgString);
     //Get promises to send messages to connected clients
     let sendMsgPromises = await ws.getSendMessagePromises(msgString, domainName, stage);
     //Execute promises
     await Promise.all(sendMsgPromises);
-
-    // plots the results
-    // plotData(polarityCounter);
-
     return {
         statusCode: 200,
         body: "Ok"
     };
 };
-
-
-
-//Plots the specified data
-function plotData(polarityCounter){
-    var data = [{
-        values: polarityCounter,
-        labels: ['Positive', 'Negative', 'Neutral', 'Mixed'],
-        type: 'pie'
-    }];
-
-    var layout = {
-        height: 400,
-        width: 500
-    };
-    plotly.plot(data, layout);
-}

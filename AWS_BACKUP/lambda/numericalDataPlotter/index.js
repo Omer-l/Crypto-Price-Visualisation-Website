@@ -221,8 +221,6 @@ exports.handler = async (event) => {
             data : lines,
             type : 'numerical'
         };
-
-        let msgString = JSON.stringify(msg);
         //Get promises to send messages to connected clients
         let sendMsgPromises = await ws.getSendMessagePromises(msgString, domainName, stage, connectionId);
         //Execute promises

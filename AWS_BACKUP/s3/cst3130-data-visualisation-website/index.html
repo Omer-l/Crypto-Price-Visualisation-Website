@@ -118,6 +118,7 @@
         let messageLowerCase = message.toLowerCase();
         if(messageLowerCase.includes("pie")) {
             let plotlyData = JSON.parse(message);
+            console.log("Plotting data for sentiment analysis");
 
             for(let graphNum=0; graphNum < 5; ++graphNum){
                 let dataPie = [{
@@ -173,10 +174,9 @@
                     y: [yValuesATOM]
                 }, [0]);
             }
-            console.log("LINEOINS: " + JSON.stringify(lines));
 
         } else if (messageLowerCase.includes("numerical")) {
-            console.log("Plotting data for graphs");
+            console.log("Plotting data for numerical graphs");
             let plotlyData = JSON.parse(message);
             let lines = plotlyData.data;
             //Plots the data
