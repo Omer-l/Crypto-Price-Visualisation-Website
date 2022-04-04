@@ -33,7 +33,7 @@ function readCryptoData() {
 //reads in the predictions
 function readCryptoPredictionData() {
     const params = {
-        TableName: 'EndpointPredictions',
+        TableName: 'CryptoDataEndpointPredictions',
         ScanIndexForward: false
     };
     return ddb.scan(params).promise();
