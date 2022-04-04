@@ -9,7 +9,7 @@ let ws = require('websocket');
 const ddb = new AWS.DynamoDB.DocumentClient({ region: 'us-east-1' });
 
 //Hard coded domain name and stage - use when pushing messages from server to client
-let domainName = "7dxr2k9a9b.execute-api.us-east-1.amazonaws.com";
+let domainName = "ao2jtid6dl.execute-api.us-east-1.amazonaws.com/prod";
 let stage = "prod";
 
 
@@ -56,6 +56,7 @@ function getData(dataString) {
 
 exports.handler = async (event) => {
     let connectionId = event.requestContext.connectionId;
+    console.log("HELOO " + connectionId);
     //Holds the main line, predictions (Lower Quartile, mean, Upper Quartile)
     let lines = [];
     //basic X values for time plot
@@ -221,6 +222,9 @@ exports.handler = async (event) => {
             data : lines,
             type : 'numerical'
         };
+
+        let msgString = JSON.stringify(msg);
+
         //Get promises to send messages to connected clients
         let sendMsgPromises = await ws.getSendMessagePromises(msgString, domainName, stage, connectionId);
         //Execute promises
