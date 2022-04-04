@@ -9,7 +9,7 @@ let ws = require('websocket');
 const ddb = new AWS.DynamoDB.DocumentClient({ region: 'us-east-1' });
 
 //Hard coded domain name and stage - use when pushing messages from server to client
-let domainName = "ao2jtid6dl.execute-api.us-east-1.amazonaws.com/prod";
+let domainName = "ao2jtid6dl.execute-api.us-east-1.amazonaws.com";
 let stage = "prod";
 
 
@@ -162,7 +162,7 @@ exports.handler = async (event) => {
         lines.push([linkLine]);
         lines.push([lunaLine]);
         lines.push([solLine]);
-
+        console.log(JSON.stringify(lines));
 
         //The first Y
         let initialY = cryptos.Items[cryptos.Items.length - 1].Price;
