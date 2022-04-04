@@ -100,7 +100,7 @@
 
 
     //Open connection
-    let connection = new WebSocket("wss://7dxr2k9a9b.execute-api.us-east-1.amazonaws.com/prod");
+    let connection = new WebSocket("wss://ao2jtid6dl.execute-api.us-east-1.amazonaws.com/prod");
 
     //Enables graph refresh
     let dataRevision = 0;
@@ -138,15 +138,14 @@
             }
         } else if (messageLowerCase.includes("updatenumerical")) {
             let plotlyData = JSON.parse(message);
-            let lines = plotlyData.data;
-
+            let linesUpdate = plotlyData.data;
             let yValuesATOM = [];
             let yValuesDOT = [];
             let yValuesLINK = [];
             let yValuesLUNA = [];
             let yValuesSOL = [];
-            for(let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-                let line = lines[lineIndex];
+            for(let lineIndex = 0; lineIndex < linesUpdate.length; lineIndex++) {
+                let line = linesUpdate[lineIndex];
 
                 if(line.name == 'ATOM') {
                     yValuesATOM = line.y;
@@ -164,14 +163,17 @@
                     let yValuesSOL = line.y;
                 }
             }
-            let xValues = lines[0].x;
-
+            let yValues = [yValuesATOM, yValuesDOT, yValuesLINK, yValuesLUNA, yValuesSOL]; //holds all currency y values
+            let xValues = linesUpdate[0].x;
+            for(let i = 0; i < linesUpdate.length; i++) {
+                console.log(JSON.stringify(linesUpdate[i].x));
+            }
             for(let currencyNumber = 0; currencyNumber < currencies.length; currencyNumber++) {
                 let currency = currencies[currencyNumber];
                 let graphDivIdName = currency + "GraphDiv";
                 Plotly.extendTraces(graphDivIdName, {
                     x: [xValues],
-                    y: [yValuesATOM]
+                    y: [yValues[currencyNumber]]
                 }, [0]);
             }
 

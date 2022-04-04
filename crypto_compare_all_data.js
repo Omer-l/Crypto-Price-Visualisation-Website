@@ -66,7 +66,7 @@ var Put;
         return SageMakerData;
     }());
     var currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    var numberOfPricesToGET = 30;
+    var numberOfPricesToGET = 700;
     var dynamoDBBatch = [];
     //Class that wraps cryptoCompare web service
     var cryptoCompareAllData = /** @class */ (function () {
@@ -96,7 +96,7 @@ var Put;
     //Gets the historical data for a range of dates.
     function getHistoricalData() {
         return __awaiter(this, void 0, void 0, function () {
-            var _loop_1, index, batchNumber, rowNumber, batch, row, item, params;
+            var _loop_1, index;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -194,40 +194,7 @@ var Put;
                     case 3:
                         index++;
                         return [3 /*break*/, 1];
-                    case 4:
-                        batchNumber = 0;
-                        rowNumber = 25 * batchNumber;
-                        for (batchNumber = 0; batchNumber < dynamoDBBatch.length && dynamoDBBatch[rowNumber] != undefined; batchNumber++) {
-                            batch = [];
-                            for (rowNumber = 25 * batchNumber; rowNumber < ((batchNumber + 1) * 25) && dynamoDBBatch[rowNumber] != undefined; rowNumber++) {
-                                row = dynamoDBBatch[rowNumber];
-                                item = {
-                                    PutRequest: {
-                                        Item: {
-                                            PriceTimeStamp: { N: (row.PriceTimeStamp + "") },
-                                            Currency: { S: row.Currency },
-                                            Price: { N: (row.Price + "") },
-                                        }
-                                    }
-                                };
-                                batch.push(item);
-                            }
-                            params = {
-                                RequestItems: {
-                                    "CryptoData": batch
-                                }
-                            };
-                            //Store data in DynamoDB and handle errors
-                            dynamoDB.batchWriteItem(params, function (err, data) {
-                                if (err) {
-                                    console.log("Error", err);
-                                }
-                                else {
-                                    console.log("Success", data);
-                                }
-                            });
-                        }
-                        return [2 /*return*/];
+                    case 4: return [2 /*return*/];
                 }
             });
         });

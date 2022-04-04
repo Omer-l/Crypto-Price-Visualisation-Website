@@ -49,7 +49,8 @@ function dateToMilliseconds(created_at) {
     return new Date(year, month, day, hour, minute, second).getTime();
 }
 
-let currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
+const currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
+const limit = 25;
 for(let index = 0; index < currencies.length; index++) {
     let currency = currencies[index];
     twitterAPI.v2.search(currency + 'coin', {
@@ -63,7 +64,7 @@ for(let index = 0; index < currencies.length; index++) {
             'description',
         ],
         'max_results': [
-            '90',
+            limit,
         ]
     }).then((val) => {
         let tweets = JSON.parse(JSON.stringify(val.data['data'])); //holds tweets
@@ -74,7 +75,7 @@ for(let index = 0; index < currencies.length; index++) {
             let text = tweet.text;
             //Table name and data for table
             let params = {
-                TableName: "sentimentData",
+                TableName: "TwitterTweets",
                 Item: {
                     message_id: tweetId,
                     date: tweet.created_at,

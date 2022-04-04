@@ -78,7 +78,7 @@ let dynamoDB = new AWS.DynamoDB({maxRetries: 13, retryDelayOptions: {base: 200}}
     }
 
     const currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    const numberOfPricesToGET = 30;
+    const numberOfPricesToGET = 700;
     let dynamoDBBatch: Array<DynamoDBItem> = [];
 
 //Class that wraps cryptoCompare web service
@@ -199,42 +199,42 @@ let dynamoDB = new AWS.DynamoDB({maxRetries: 13, retryDelayOptions: {base: 200}}
             }
         }
 
-        /* Write to DynamoDB table */
-
-        let batchNumber = 0;
-        let rowNumber = 25 * batchNumber;
-        for(batchNumber = 0; batchNumber < dynamoDBBatch.length && dynamoDBBatch[rowNumber] != undefined; batchNumber++) {
-            let batch = [];
-            for (rowNumber = 25 * batchNumber; rowNumber < ( (batchNumber + 1) * 25) && dynamoDBBatch[rowNumber] != undefined; rowNumber++) {
-                let row = dynamoDBBatch[rowNumber];
-                let item = {
-                    PutRequest: {
-                        Item : {
-                            PriceTimeStamp: {N: (row.PriceTimeStamp + "")},
-                            Currency: {S: row.Currency},
-                            Price: {N: (row.Price + "")},
-                        }
-                    }
-                }
-                batch.push(item);
-            }
-
-            var params = {
-                RequestItems: {
-                    "CryptoData": batch
-                }
-            };
-
-
-            //Store data in DynamoDB and handle errors
-            dynamoDB.batchWriteItem(params, function(err, data) {
-                if (err) {
-                    console.log("Error", err);
-                } else {
-                    console.log("Success", data);
-                }
-            });
-        }
+        // /* Write to DynamoDB table */
+        //
+        // let batchNumber = 0;
+        // let rowNumber = 25 * batchNumber;
+        // for(batchNumber = 0; batchNumber < dynamoDBBatch.length && dynamoDBBatch[rowNumber] != undefined; batchNumber++) {
+        //     let batch = [];
+        //     for (rowNumber = 25 * batchNumber; rowNumber < ( (batchNumber + 1) * 25) && dynamoDBBatch[rowNumber] != undefined; rowNumber++) {
+        //         let row = dynamoDBBatch[rowNumber];
+        //         let item = {
+        //             PutRequest: {
+        //                 Item : {
+        //                     PriceTimeStamp: {N: (row.PriceTimeStamp + "")},
+        //                     Currency: {S: row.Currency},
+        //                     Price: {N: (row.Price + "")},
+        //                 }
+        //             }
+        //         }
+        //         batch.push(item);
+        //     }
+        //
+        //     var params = {
+        //         RequestItems: {
+        //             "CryptoData": batch
+        //         }
+        //     };
+        //
+        //
+        //     //Store data in DynamoDB and handle errors
+        //     dynamoDB.batchWriteItem(params, function(err, data) {
+        //         if (err) {
+        //             console.log("Error", err);
+        //         } else {
+        //             console.log("Success", data);
+        //         }
+        //     });
+        // }
     }
 
 //Call function to get historical data

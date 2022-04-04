@@ -36,6 +36,7 @@ var Twitter_Sentiment_Scanner;
         return new Date(year, month, day, hour, minute, second).getTime();
     }
     var currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
+    var limit = 25;
     var _loop_1 = function (index) {
         var currency = currencies[index];
         twitterAPI.v2.search(currency + 'coin', {
@@ -49,7 +50,7 @@ var Twitter_Sentiment_Scanner;
                 'description',
             ],
             'max_results': [
-                '90',
+                limit,
             ]
         }).then(function (val) {
             var tweets = JSON.parse(JSON.stringify(val.data['data'])); //holds tweets
@@ -60,7 +61,7 @@ var Twitter_Sentiment_Scanner;
                 var text = tweet.text;
                 //Table name and data for table
                 var params = {
-                    TableName: "sentimentData",
+                    TableName: "TwitterTweets",
                     Item: {
                         message_id: tweetId,
                         date: tweet.created_at,

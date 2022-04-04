@@ -33,7 +33,7 @@ function readCryptoData() {
 }
 
 async function writeEndpointData(currency, means, lowerQuantiles, upperQuantiles, samples) {
-    let tableName = 'EndpointPredictions';
+    let tableName = 'CryptoDataEndpointPredictions';
     await wipeDDB(tableName, currency); // first wipe the matching row
     var params = {
         TableName: tableName,
