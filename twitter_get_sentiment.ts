@@ -50,7 +50,7 @@ function dateToMilliseconds(created_at) {
 }
 
 const currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-const limit = 25;
+const limit = 30;
 for(let index = 0; index < currencies.length; index++) {
     let currency = currencies[index];
     twitterAPI.v2.search(currency + 'coin', {
@@ -71,7 +71,7 @@ for(let index = 0; index < currencies.length; index++) {
         tweets.forEach((tweet) => {
             console.log("NEW TWEET : " + JSON.stringify(tweet));
             let timeStamp = dateToMilliseconds(tweet.created_at);
-            let tweetId = tweet.id;
+            let tweetId: number = tweet.id;
             let text = tweet.text;
             //Table name and data for table
             let params = {

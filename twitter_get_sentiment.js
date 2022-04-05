@@ -36,7 +36,7 @@ var Twitter_Sentiment_Scanner;
         return new Date(year, month, day, hour, minute, second).getTime();
     }
     var currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    var limit = 25;
+    var limit = 30;
     var _loop_1 = function (index) {
         var currency = currencies[index];
         twitterAPI.v2.search(currency + 'coin', {
