@@ -4,7 +4,7 @@ let db = require('database');
 let ws = require('websocket');
 
 //Hard coded domain name and stage - use when pushing messages from server to client
-let domainName = "7dxr2k9a9b.execute-api.us-east-1.amazonaws.com";
+let domainName = "ao2jtid6dl.execute-api.us-east-1.amazonaws.com";
 let stage = "prod";
 
 exports.handler = async (event) => {

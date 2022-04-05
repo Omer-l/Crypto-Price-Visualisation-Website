@@ -1,5 +1,3 @@
-
-// import { apiKeys } from './passwordsHolder';
 namespace Put {
     //Holds access keys for APIs
     let pH = require('./passwordsHolder');
@@ -203,19 +201,12 @@ namespace Put {
                 }
                 batch.push(item);
             }
-            //Table name and data for table
-            // let params = {
-            //     TableName: "CryptoData",
-            //     Item: {
-            //     }
-            // };
+
             var params = {
                 RequestItems: {
                     "CryptoData": batch
                 }
             };
-
-
                 //Store data in DynamoDB and handle errors
             dynamoDB.batchWriteItem(params, function(err, data) {
                 if (err) {
@@ -224,15 +215,6 @@ namespace Put {
                     console.log("Success", data);
                 }
             });
-                //Store data in DynamoDB and handle errors
-                // documentClient.put(params, (err, data) => {
-                //     if (err) {
-                //         console.error("Unable to add item", params.Item.Currency);
-                //         console.error("Error JSON:", JSON.stringify(err));
-                //     } else {
-                //         console.log("Currency added to table:", params.Item);
-                //     }
-                // });
 
         }
     }

@@ -34,7 +34,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-// import { apiKeys } from './passwordsHolder';
 var Put;
 (function (Put) {
     //Holds access keys for APIs
@@ -211,15 +210,6 @@ var Put;
                                     console.log("Success", data);
                                 }
                             });
-                            //Store data in DynamoDB and handle errors
-                            // documentClient.put(params, (err, data) => {
-                            //     if (err) {
-                            //         console.error("Unable to add item", params.Item.Currency);
-                            //         console.error("Error JSON:", JSON.stringify(err));
-                            //     } else {
-                            //         console.log("Currency added to table:", params.Item);
-                            //     }
-                            // });
                         }
                         return [2 /*return*/];
                 }
