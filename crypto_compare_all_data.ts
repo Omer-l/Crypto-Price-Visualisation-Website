@@ -78,7 +78,7 @@ let dynamoDB = new AWS.DynamoDB({maxRetries: 13, retryDelayOptions: {base: 200}}
     }
 
     const currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-    const numberOfPricesToGET = 700;
+    const numberOfPricesToGET = 200;
     let dynamoDBBatch: Array<DynamoDBItem> = [];
 
 //Class that wraps cryptoCompare web service

@@ -50,7 +50,7 @@ function dateToMilliseconds(created_at) {
 }
 
 const currencies = ["SOL", "LINK", "LUNA", "ATOM", "DOT"];
-const limit = 30;
+const LIMIT = 90;
 for(let index = 0; index < currencies.length; index++) {
     let currency = currencies[index];
     twitterAPI.v2.search(currency + 'coin', {
@@ -64,7 +64,7 @@ for(let index = 0; index < currencies.length; index++) {
             'description',
         ],
         'max_results': [
-            limit,
+            LIMIT,
         ]
     }).then((val) => {
         let tweets = JSON.parse(JSON.stringify(val.data['data'])); //holds tweets
